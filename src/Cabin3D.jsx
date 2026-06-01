@@ -10,6 +10,7 @@ import {
   STUD_SIZE, STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
 } from './cabinData.js'
+import Kitchen3D from './Kitchen3D'
 
 // ── Coordinate convention ─────────────────────────────────────────
 // Plan coords are (x, y) with y increasing downward (south).
@@ -351,6 +352,7 @@ export default function Cabin3D() {
           ))}
           <Studs />
           <Staircase />
+          <Kitchen3D />
           <Person at={personAt} />
           {showDims && <Dimensions />}
         </group>
