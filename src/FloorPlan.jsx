@@ -10,10 +10,14 @@ const H_RIGHT  = 3.75
 const STEP_Y = H_LEFT - H_RIGHT          // 4.45m from top
 const STEP_W = W_BOTTOM - W_TOP          // 3.30m wide
 
-// Entrance on bottom wall (from sketch image 2)
+// Entrance on bottom wall
 const ENT_LEFT  = 1.30
 const ENT_WIDTH = 3.80
-// check: 1.30 + 3.80 + 1.40 = 6.50 ≈ 6.60 ✓ (0.10m absorbed in wall thickness)
+
+// Window on right wall (3.75m total: 1.25 + 1.20 + 1.30 = 3.75 ✓)
+const WIN_FROM_TOP = 1.25   // from top of right wall (STEP_Y)
+const WIN_HEIGHT   = 1.20   // window opening
+const WIN_FROM_BOT = 1.30   // to bottom of right wall
 
 const PAD = 70
 const OX  = PAD + 40   // extra left room for left-side dimension
@@ -98,6 +102,25 @@ export default function FloorPlan() {
         {/* Floor fill */}
         <polygon points={pointsStr} fill="#ede8df" stroke="#6b5744" strokeWidth={2.5} strokeLinejoin="round" />
 
+        {/* Window on right wall */}
+        {(() => {
+          const wx   = OX + W_BOTTOM * SCALE
+          const wy1  = OY + (STEP_Y + WIN_FROM_TOP) * SCALE
+          const wy2  = OY + (STEP_Y + WIN_FROM_TOP + WIN_HEIGHT) * SCALE
+          const wThk = 6   // wall thickness visual
+          return (
+            <g>
+              {/* erase wall line at window */}
+              <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#faf9f7" strokeWidth={5} />
+              {/* window symbol: outer lines + glass lines */}
+              <rect x={wx - wThk} y={wy1} width={wThk * 2} height={wy2 - wy1}
+                    fill="rgba(180,220,240,0.35)" stroke="#3a7ca5" strokeWidth={1} />
+              <line x1={wx - wThk} y1={(wy1 + wy2) / 2} x2={wx + wThk} y2={(wy1 + wy2) / 2}
+                    stroke="#3a7ca5" strokeWidth={0.8} />
+            </g>
+          )
+        })()}
+
         {/* Entrance gap in bottom wall */}
         <line x1={ex1} y1={ey} x2={ex2} y2={ey} stroke="#faf9f7" strokeWidth={5} />
 
@@ -114,8 +137,12 @@ export default function FloorPlan() {
         <HDim x1m={0} x2m={W_TOP} ym={0} label="3.30 m" above />
         {/* Left: 8.20m */}
         <VDim xm={0} y1m={0} y2m={H_LEFT} label="8.20 m" side="left" />
-        {/* Right: 3.75m */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT} label="3.75 m" side="right" />
+        {/* Right wall window sub-dimensions: 1.25 / 1.20 / 1.30 */}
+        <VDim xm={W_BOTTOM} y1m={STEP_Y}                          y2m={STEP_Y + WIN_FROM_TOP}                    label="1.25 m" side="right" offset={60} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP}           y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT}       label="1.20 m" side="right" offset={60} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                               label="1.30 m" side="right" offset={60} />
+        {/* Right: 3.75m total */}
+        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT} label="3.75 m" side="right" offset={110} />
         {/* Bottom total: 6.60m */}
         <HDim x1m={0} x2m={W_BOTTOM} ym={H_LEFT} label="6.60 m" above={false} offset={48} />
 
