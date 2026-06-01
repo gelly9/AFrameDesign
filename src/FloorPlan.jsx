@@ -232,12 +232,13 @@ export default function FloorPlan() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      padding: '3rem', background: '#eeeae4', minHeight: '100vh'
+      padding: 'clamp(8px, 3vw, 48px)', background: '#eeeae4', minHeight: '100vh'
     }}>
       <svg
-        width={svgW} height={svgH}
         viewBox={`0 0 ${svgW} ${svgH}`}
-        style={{ background: '#fff', borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.13)' }}
+        width="100%"
+        preserveAspectRatio="xMidYMid meet"
+        style={{ maxWidth: svgW, height: 'auto', background: '#fff', borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.13)' }}
       >
         <defs>
           <ArrowMarkers />

@@ -11,7 +11,13 @@
       "Bash(npx vite *)",
       "Bash(git commit *)",
       "Bash(node -e ' *)",
-      "Bash(grep -n \"THICK\\\\s*=\\\\|boxGeometry args={\\\\[L,\" /Users/gelli/A-Frame-Design/src/Cabin3D.jsx)"
+      "Bash(grep -n \"THICK\\\\s*=\\\\|boxGeometry args={\\\\[L,\" /Users/gelli/A-Frame-Design/src/Cabin3D.jsx)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(gh run *)",
+      "Bash(gh workflow *)"
     ]
   }
 }
