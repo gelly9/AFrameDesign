@@ -1,56 +1,39 @@
+import {
+  W_TOP, H_LEFT, W_BOTTOM, H_RIGHT, STEP_Y, STEP_W,
+  ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
+  STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
+} from './cabinData.js'
+
 const SCALE = 95
 
-// Walls
-const W_TOP    = 3.30
-const H_LEFT   = 8.20
-const W_BOTTOM = 6.60
-const H_RIGHT  = 4.80
-const STEP_Y   = H_LEFT - H_RIGHT   // 3.40m
-const STEP_W   = W_BOTTOM - W_TOP   // 3.30m
+const ENT_LEFT  = ENTRANCE.fromLeft
+const ENT_WIDTH = ENTRANCE.width
+const TDOOR_WIDTH = TERRACE_DOOR.width
 
-// Entrance (bottom wall)
-const ENT_LEFT  = 1.30
-const ENT_WIDTH = 3.80
+// Bathroom door derived plan positions
+const BDOOR_WIDTH = BATHROOM_DOOR.width
+const BDOOR_Y2    = STEP_Y - BATHROOM_DOOR.fromBottom
+const BDOOR_Y1    = BDOOR_Y2 - BDOOR_WIDTH
 
-// Terrace door (right wall, from the top)
-const TDOOR_WIDTH = 1.05
+// Right-wall window derived positions
+const WIN_HEIGHT   = RIGHT_WINDOW.width
+const WIN_FROM_BOT = RIGHT_WINDOW.fromBottom
+const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT
 
-// Bathroom door (inner 3.40m wall): 0.80m wide, 0.80m above bottom of that wall
-const BDOOR_WIDTH    = 0.80
-const BDOOR_FROM_BOT = 0.80
-const BDOOR_Y2       = STEP_Y - BDOOR_FROM_BOT          // 2.60m (bottom of door)
-const BDOOR_Y1       = BDOOR_Y2 - BDOOR_WIDTH           // 1.80m (top of door)
+// Top-wall window derived positions
+const WIN2_WIDTH = TOP_WINDOW.width
+const WIN2_X1    = W_TOP - TOP_WINDOW.fromRight - WIN2_WIDTH
+const WIN2_X2    = WIN2_X1 + WIN2_WIDTH
 
-// Window on right wall: 1.30m from bottom, 1.20m tall
-const WIN_HEIGHT   = 1.20
-const WIN_FROM_BOT = 1.30
-const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // 2.30m
-
-// Window on top wall: 1.10m from right, 0.70m wide
-const WIN2_WIDTH       = 0.70
-const WIN2_FROM_RIGHT  = 1.10
-const WIN2_X1          = W_TOP - WIN2_FROM_RIGHT - WIN2_WIDTH
-const WIN2_X2          = WIN2_X1 + WIN2_WIDTH
-
-// Studs 15x15cm — centered at given (cx, cy) in meters
-const STUD_SIZE = 0.15
-const STUDS = [
-  { id: 'S1', cx: W_BOTTOM - 1.20, cy: H_LEFT  - 2.30,
-    dims: [
-      { kind: 'h', from: 'right', label: '1.20 m' },
-      { kind: 'v', from: 'bottom', label: '2.30 m' },
-    ] },
-  { id: 'S2', cx: 1.20,            cy: 3.30,
-    dims: [
-      { kind: 'h', from: 'left',  label: '1.20 m' },
-      { kind: 'v', from: 'top',   label: '3.30 m' },
-    ] },
-  { id: 'S3', cx: 1.20,            cy: H_LEFT - 2.30,
-    dims: [
-      { kind: 'h', from: 'left',   label: '1.20 m' },
-      { kind: 'v', from: 'bottom', label: '2.30 m' },
-    ] },
-]
+// Studs: attach dimension annotations
+const STUDS = RAW_STUDS.map(s => {
+  const dims = []
+  if (s.cx > W_BOTTOM / 2) dims.push({ kind: 'h', from: 'right',  label: `${(W_BOTTOM - s.cx).toFixed(2)} m` })
+  else                     dims.push({ kind: 'h', from: 'left',   label: `${s.cx.toFixed(2)} m` })
+  if (s.cy > H_LEFT / 2)   dims.push({ kind: 'v', from: 'bottom', label: `${(H_LEFT - s.cy).toFixed(2)} m` })
+  else                     dims.push({ kind: 'v', from: 'top',    label: `${s.cy.toFixed(2)} m` })
+  return { ...s, dims }
+})
 
 // Canvas
 const MARGIN_L = 140
@@ -242,7 +225,7 @@ export default function FloorPlan() {
   const wy1 = py(STEP_Y + WIN_FROM_TOP)
   const wy2 = py(STEP_Y + WIN_FROM_TOP + WIN_HEIGHT)
   const wx  = px(W_BOTTOM)
-  const area = (W_TOP * H_LEFT + STEP_W * H_RIGHT).toFixed(1)
+  const area = FLOOR_AREA.toFixed(1)
 
   return (
     <div style={{
