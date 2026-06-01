@@ -18,6 +18,11 @@ const WIN_HEIGHT   = 1.20
 const WIN_FROM_BOT = 1.30
 const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // 2.30m
 
+// Wood stud: 15x15cm, 1.20m from right wall, centered on window
+const STUD_SIZE = 0.15
+const STUD_X    = W_BOTTOM - 1.20 - STUD_SIZE / 2
+const STUD_Y    = H_LEFT - 2.30 - STUD_SIZE / 2
+
 // Window on top wall (3.30m back wall): 1.10m from right, 0.70m wide
 const WIN2_FROM_RIGHT = 1.10
 const WIN2_WIDTH       = 0.70
@@ -197,6 +202,22 @@ export default function FloorPlan() {
             </g>
           )
         })()}
+
+        {/* Wood stud 15x15cm */}
+        <rect
+          x={px(STUD_X)} y={py(STUD_Y)}
+          width={STUD_SIZE * SCALE} height={STUD_SIZE * SCALE}
+          fill="#6b5744" stroke="#3d2f1f" strokeWidth={1}
+        />
+        {/* Hatch lines inside stud */}
+        <line x1={px(STUD_X)} y1={py(STUD_Y)} x2={px(STUD_X + STUD_SIZE)} y2={py(STUD_Y + STUD_SIZE)}
+              stroke="#3d2f1f" strokeWidth={0.8} />
+        <line x1={px(STUD_X)} y1={py(STUD_Y + STUD_SIZE)} x2={px(STUD_X + STUD_SIZE)} y2={py(STUD_Y)}
+              stroke="#3d2f1f" strokeWidth={0.8} />
+        {/* Dimension: 1.20m from right wall to stud */}
+        <HDim x1m={STUD_X + STUD_SIZE} x2m={W_BOTTOM} ym={STUD_Y + STUD_SIZE / 2} label="1.20 m" above gap={28} />
+        {/* Dimension: 2.30m from bottom wall to stud */}
+        <VDim xm={STUD_X + STUD_SIZE / 2} y1m={STUD_Y + STUD_SIZE} y2m={H_LEFT} label="2.30 m" side="left" gap={36} />
 
         {/* Terrace door on right wall */}
         {(() => {
