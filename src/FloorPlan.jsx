@@ -10,9 +10,16 @@ const STEP_W   = W_BOTTOM - W_TOP   // 3.30m
 const ENT_LEFT  = 1.30
 const ENT_WIDTH = 3.80
 
+// Window on right wall: 1.30m from bottom, 1.20m tall
 const WIN_HEIGHT   = 1.20
 const WIN_FROM_BOT = 1.30
 const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // 2.30m
+
+// Window on top wall (3.30m back wall): 1.10m from right, 0.70m wide
+const WIN2_FROM_RIGHT = 1.10
+const WIN2_WIDTH       = 0.70
+const WIN2_X1          = W_TOP - WIN2_FROM_RIGHT - WIN2_WIDTH  // 1.50m
+const WIN2_X2          = WIN2_X1 + WIN2_WIDTH                  // 2.20m
 
 const MARGIN_L = 130
 const MARGIN_T = 120
@@ -174,6 +181,20 @@ export default function FloorPlan() {
               fontSize={11} fill="#3a7ca5" fontWeight={600}
               fontFamily="'Helvetica Neue',Arial,sans-serif">ENTRANCE</text>
 
+        {/* Window on top wall */}
+        {(() => {
+          const wx1 = px(WIN2_X1), wx2 = px(WIN2_X2), wy = py(0)
+          return (
+            <g>
+              <line x1={wx1} y1={wy} x2={wx2} y2={wy} stroke="#fff" strokeWidth={13} />
+              <rect x={wx1} y={wy - 8} width={wx2 - wx1} height={16}
+                    fill="rgba(147,210,235,0.35)" stroke="#3a7ca5" strokeWidth={1.5} />
+              <line x1={(wx1 + wx2) / 2} y1={wy - 8} x2={(wx1 + wx2) / 2} y2={wy + 8}
+                    stroke="#3a7ca5" strokeWidth={1} />
+            </g>
+          )
+        })()}
+
         {/* Window on right wall */}
         <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={13} />
         <rect x={wx - 8} y={wy1} width={16} height={wy2 - wy1}
@@ -183,6 +204,9 @@ export default function FloorPlan() {
 
         {/* ── Dimensions ── */}
         <HDim x1m={0} x2m={W_TOP}    ym={0}      label="3.30 m" above    gap={40} />
+        {/* Top wall window dims */}
+        <HDim x1m={WIN2_X1} x2m={WIN2_X2}        ym={0} label="0.70 m" above gap={76} />
+        <HDim x1m={WIN2_X2} x2m={W_TOP}           ym={0} label="1.10 m" above gap={76} />
         <VDim xm={0}  y1m={0} y2m={H_LEFT}       label="8.20 m" side="left" gap={55} />
         <VDim xm={W_TOP} y1m={0} y2m={STEP_Y}    label="3.40 m" side="right" gap={38} />
         <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label="3.30 m" above={false} gap={30} />
