@@ -10,6 +10,9 @@ const STEP_W   = W_BOTTOM - W_TOP   // 3.30m
 const ENT_LEFT  = 1.30
 const ENT_WIDTH = 3.80
 
+// Terrace door on right wall: starts from top (STEP_Y), 1.05m
+const TDOOR_WIDTH = 1.05
+
 // Window on right wall: 1.30m from bottom, 1.20m tall
 const WIN_HEIGHT   = 1.20
 const WIN_FROM_BOT = 1.30
@@ -195,6 +198,28 @@ export default function FloorPlan() {
           )
         })()}
 
+        {/* Terrace door on right wall */}
+        {(() => {
+          const dy1 = py(STEP_Y)
+          const dy2 = py(STEP_Y + TDOOR_WIDTH)
+          const dx  = px(W_BOTTOM)
+          return (
+            <g>
+              <line x1={dx} y1={dy1} x2={dx} y2={dy2} stroke="#fff" strokeWidth={13} />
+              {/* door jambs */}
+              <line x1={dx - 6} y1={dy1} x2={dx + 6} y2={dy1} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              <line x1={dx - 6} y1={dy2} x2={dx + 6} y2={dy2} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              {/* door swing arc (opens outward to the right) */}
+              <path
+                d={`M ${dx} ${dy1} A ${TDOOR_WIDTH * SCALE} ${TDOOR_WIDTH * SCALE} 0 0 1 ${dx + TDOOR_WIDTH * SCALE} ${dy2}`}
+                fill="rgba(58,124,165,0.06)" stroke="#3a7ca5" strokeWidth={1.2} strokeDasharray="5,3"
+              />
+              <line x1={dx} y1={dy1} x2={dx + TDOOR_WIDTH * SCALE} y2={dy2}
+                    stroke="#3a7ca5" strokeWidth={1.2} />
+            </g>
+          )
+        })()}
+
         {/* Window on right wall */}
         <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={13} />
         <rect x={wx - 8} y={wy1} width={16} height={wy2 - wy1}
@@ -214,7 +239,11 @@ export default function FloorPlan() {
         <HDim x1m={ENT_LEFT} x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} gap={55} />
         <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM}  ym={H_LEFT} label="1.40 m" above={false} gap={55} />
         <HDim x1m={0} x2m={W_BOTTOM}             ym={H_LEFT} label="6.60 m" above={false} gap={105} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT}    label="4.80 m" side="right" gap={130} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT}          label="4.80 m" side="right" gap={130} />
+        {/* Terrace door dim */}
+        <VDim xm={W_BOTTOM} y1m={STEP_Y}              y2m={STEP_Y + TDOOR_WIDTH} label="1.05 m" side="right" gap={55} />
+        {/* Gap between door and window */}
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + TDOOR_WIDTH} y2m={STEP_Y + WIN_FROM_TOP} label="1.25 m" side="right" gap={55} />
         <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP}              y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} label="1.20 m" side="right" gap={55} />
         <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                            label="1.30 m" side="right" gap={55} />
 
