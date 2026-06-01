@@ -1,5 +1,6 @@
 const SCALE = 95
 
+// Walls
 const W_TOP    = 3.30
 const H_LEFT   = 8.20
 const W_BOTTOM = 6.60
@@ -7,10 +8,11 @@ const H_RIGHT  = 4.80
 const STEP_Y   = H_LEFT - H_RIGHT   // 3.40m
 const STEP_W   = W_BOTTOM - W_TOP   // 3.30m
 
+// Entrance (bottom wall)
 const ENT_LEFT  = 1.30
 const ENT_WIDTH = 3.80
 
-// Terrace door on right wall: starts from top (STEP_Y), 1.05m
+// Terrace door (right wall, from the top)
 const TDOOR_WIDTH = 1.05
 
 // Window on right wall: 1.30m from bottom, 1.20m tall
@@ -18,29 +20,37 @@ const WIN_HEIGHT   = 1.20
 const WIN_FROM_BOT = 1.30
 const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // 2.30m
 
-// Wood stud (right wall): 15x15cm, 1.20m from right wall, 2.30m from bottom
-const STUD_SIZE = 0.15
-const STUD_X    = W_BOTTOM - 1.20 - STUD_SIZE / 2
-const STUD_Y    = H_LEFT - 2.30 - STUD_SIZE / 2
-
-// Wood stud 2: 1.20m from left wall, 3.30m from top wall
-const STUD2_X   = 1.20 - STUD_SIZE / 2
-const STUD2_Y   = 3.30 - STUD_SIZE / 2
-
-// Wood stud 3: 1.20m from left wall, 2.30m from bottom wall
-const STUD3_X   = 1.20 - STUD_SIZE / 2
-const STUD3_Y   = H_LEFT - 2.30 - STUD_SIZE / 2
-
-// Window on top wall (3.30m back wall): 1.10m from right, 0.70m wide
-const WIN2_FROM_RIGHT = 1.10
+// Window on top wall: 1.10m from right, 0.70m wide
 const WIN2_WIDTH       = 0.70
-const WIN2_X1          = W_TOP - WIN2_FROM_RIGHT - WIN2_WIDTH  // 1.50m
-const WIN2_X2          = WIN2_X1 + WIN2_WIDTH                  // 2.20m
+const WIN2_FROM_RIGHT  = 1.10
+const WIN2_X1          = W_TOP - WIN2_FROM_RIGHT - WIN2_WIDTH
+const WIN2_X2          = WIN2_X1 + WIN2_WIDTH
 
-const MARGIN_L = 130
-const MARGIN_T = 120
-const MARGIN_R = 220
-const MARGIN_B = 160
+// Studs 15x15cm — centered at given (cx, cy) in meters
+const STUD_SIZE = 0.15
+const STUDS = [
+  { id: 'S1', cx: W_BOTTOM - 1.20, cy: H_LEFT  - 2.30,
+    dims: [
+      { kind: 'h', from: 'right', label: '1.20 m' },
+      { kind: 'v', from: 'bottom', label: '2.30 m' },
+    ] },
+  { id: 'S2', cx: 1.20,            cy: 3.30,
+    dims: [
+      { kind: 'h', from: 'left',  label: '1.20 m' },
+      { kind: 'v', from: 'top',   label: '3.30 m' },
+    ] },
+  { id: 'S3', cx: 1.20,            cy: H_LEFT - 2.30,
+    dims: [
+      { kind: 'h', from: 'left',   label: '1.20 m' },
+      { kind: 'v', from: 'bottom', label: '2.30 m' },
+    ] },
+]
+
+// Canvas
+const MARGIN_L = 140
+const MARGIN_T = 170   // more room for title + window dims on top
+const MARGIN_R = 230
+const MARGIN_B = 200
 
 const roomW = W_BOTTOM * SCALE
 const roomH = H_LEFT   * SCALE
@@ -49,9 +59,16 @@ const svgH  = MARGIN_T + roomH + MARGIN_B
 
 const OX = MARGIN_L
 const OY = MARGIN_T
-
 const px = m => OX + m * SCALE
 const py = m => OY + m * SCALE
+
+// Color tokens
+const C = {
+  wall:    '#374151',  // dark gray — structural wall dims
+  opening: '#3a7ca5',  // blue — door & window dims
+  stud:    '#8b6f47',  // warm brown — stud dims
+  helper:  '#b0b8c4',  // extension lines
+}
 
 const roomPoints = [
   [0,        0      ],
@@ -69,50 +86,89 @@ function Grid() {
   for (let y = 1; y < H_LEFT; y++)
     lines.push(<line key={`gy${y}`} x1={px(0)} y1={py(y)} x2={px(W_BOTTOM)} y2={py(y)} />)
   return (
-    <g clipPath="url(#roomClip)" stroke="#d4cabb" strokeWidth={0.6} opacity={0.6}>
+    <g clipPath="url(#roomClip)" stroke="#d4cabb" strokeWidth={0.6} opacity={0.55}>
       {lines}
     </g>
   )
 }
 
-function HDim({ x1m, x2m, ym, label, above = true, gap = 32 }) {
+function HDim({ x1m, x2m, ym, label, above = true, gap = 32, color = C.wall }) {
   const sign = above ? -1 : 1
   const yL   = py(ym) + sign * gap
   const x1   = px(x1m), x2 = px(x2m), mx = (x1 + x2) / 2
   return (
     <g>
-      <line x1={x1} y1={py(ym)} x2={x1} y2={yL} stroke="#b0b8c4" strokeWidth={0.8} />
-      <line x1={x2} y1={py(ym)} x2={x2} y2={yL} stroke="#b0b8c4" strokeWidth={0.8} />
-      <line x1={x1} y1={yL} x2={x2} y2={yL} stroke="#6b7280" strokeWidth={1.1}
-            markerStart="url(#arrowEnd)" markerEnd="url(#arrow)" />
-      <rect x={mx - 24} y={yL + (above ? -17 : 3)} width={48} height={15}
+      <line x1={x1} y1={py(ym)} x2={x1} y2={yL} stroke={C.helper} strokeWidth={0.8} />
+      <line x1={x2} y1={py(ym)} x2={x2} y2={yL} stroke={C.helper} strokeWidth={0.8} />
+      <line x1={x1} y1={yL} x2={x2} y2={yL} stroke={color} strokeWidth={1.1}
+            markerStart={`url(#arrowEnd-${color === C.wall ? 'g' : color === C.opening ? 'b' : 'r'})`}
+            markerEnd={`url(#arrow-${color === C.wall ? 'g' : color === C.opening ? 'b' : 'r'})`} />
+      <rect x={mx - 26} y={yL + (above ? -17 : 3)} width={52} height={15}
             fill="#fff" rx={2} />
       <text x={mx} y={yL + (above ? -5 : 13)} textAnchor="middle"
-            fontSize={12} fill="#374151" fontFamily="'Helvetica Neue',Arial,sans-serif">
-        {label}
+            fontSize={12} fill={color} fontWeight={500}
+            fontFamily="'Helvetica Neue',Arial,sans-serif">{label}</text>
+    </g>
+  )
+}
+
+function VDim({ xm, y1m, y2m, label, side = 'right', gap = 40, color = C.wall }) {
+  const sign = side === 'right' ? 1 : -1
+  const xL   = px(xm) + sign * gap
+  const y1   = py(y1m), y2 = py(y2m), my = (y1 + y2) / 2
+  const tw   = 48
+  return (
+    <g>
+      <line x1={px(xm)} y1={y1} x2={xL} y2={y1} stroke={C.helper} strokeWidth={0.8} />
+      <line x1={px(xm)} y1={y2} x2={xL} y2={y2} stroke={C.helper} strokeWidth={0.8} />
+      <line x1={xL} y1={y1} x2={xL} y2={y2} stroke={color} strokeWidth={1.1}
+            markerStart={`url(#arrowEnd-${color === C.wall ? 'g' : color === C.opening ? 'b' : 'r'})`}
+            markerEnd={`url(#arrow-${color === C.wall ? 'g' : color === C.opening ? 'b' : 'r'})`} />
+      <rect x={xL + (side === 'right' ? 3 : -tw - 3)} y={my - 8} width={tw} height={16}
+            fill="#fff" rx={2} />
+      <text x={xL + (side === 'right' ? tw / 2 + 3 : -tw / 2 - 3)} y={my + 5}
+            textAnchor="middle" fontSize={12} fill={color} fontWeight={500}
+            fontFamily="'Helvetica Neue',Arial,sans-serif">{label}</text>
+    </g>
+  )
+}
+
+function Stud({ stud }) {
+  const x = stud.cx - STUD_SIZE / 2
+  const y = stud.cy - STUD_SIZE / 2
+  const sx = px(x), sy = py(y), s = STUD_SIZE * SCALE
+  return (
+    <g>
+      <rect x={sx} y={sy} width={s} height={s} fill="#8b6f47" stroke="#3d2f1f" strokeWidth={1.2} />
+      <line x1={sx} y1={sy} x2={sx + s} y2={sy + s} stroke="#3d2f1f" strokeWidth={0.7} />
+      <line x1={sx} y1={sy + s} x2={sx + s} y2={sy} stroke="#3d2f1f" strokeWidth={0.7} />
+      <text x={sx + s + 6} y={sy - 4}
+            fontSize={11} fontWeight={700} fill={C.stud}
+            fontFamily="'Helvetica Neue',Arial,sans-serif">
+        {stud.id}
       </text>
     </g>
   )
 }
 
-function VDim({ xm, y1m, y2m, label, side = 'right', gap = 40 }) {
-  const sign = side === 'right' ? 1 : -1
-  const xL   = px(xm) + sign * gap
-  const y1   = py(y1m), y2 = py(y2m), my = (y1 + y2) / 2
-  const tw   = 44
+function StudDims({ stud }) {
+  const x = stud.cx - STUD_SIZE / 2
+  const y = stud.cy - STUD_SIZE / 2
+  const xMid = stud.cx
+  const yMid = stud.cy
   return (
     <g>
-      <line x1={px(xm)} y1={y1} x2={xL} y2={y1} stroke="#b0b8c4" strokeWidth={0.8} />
-      <line x1={px(xm)} y1={y2} x2={xL} y2={y2} stroke="#b0b8c4" strokeWidth={0.8} />
-      <line x1={xL} y1={y1} x2={xL} y2={y2} stroke="#6b7280" strokeWidth={1.1}
-            markerStart="url(#arrowEnd)" markerEnd="url(#arrow)" />
-      <rect x={xL + (side === 'right' ? 3 : -tw - 3)} y={my - 8} width={tw} height={16}
-            fill="#fff" rx={2} />
-      <text x={xL + (side === 'right' ? tw / 2 + 3 : -tw / 2 - 3)} y={my + 5}
-            textAnchor="middle" fontSize={12} fill="#374151"
-            fontFamily="'Helvetica Neue',Arial,sans-serif">
-        {label}
-      </text>
+      {stud.dims.map((d, i) => {
+        if (d.kind === 'h' && d.from === 'right')
+          return <HDim key={i} x1m={x + STUD_SIZE} x2m={W_BOTTOM} ym={yMid} label={d.label} above gap={26} color={C.stud} />
+        if (d.kind === 'h' && d.from === 'left')
+          return <HDim key={i} x1m={0} x2m={x} ym={yMid} label={d.label} above gap={26} color={C.stud} />
+        if (d.kind === 'v' && d.from === 'top')
+          return <VDim key={i} xm={xMid} y1m={0} y2m={y} label={d.label} side="left" gap={36} color={C.stud} />
+        if (d.kind === 'v' && d.from === 'bottom')
+          return <VDim key={i} xm={xMid} y1m={y + STUD_SIZE} y2m={H_LEFT} label={d.label} side="left" gap={36} color={C.stud} />
+        return null
+      })}
     </g>
   )
 }
@@ -126,6 +182,50 @@ function Compass({ x, y, r = 22 }) {
       <text x={0} y={-r - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="#374151"
             fontFamily="'Helvetica Neue',Arial,sans-serif">N</text>
     </g>
+  )
+}
+
+function Legend({ x, y }) {
+  const items = [
+    { color: C.wall,    label: 'Wall' },
+    { color: C.opening, label: 'Door / Window' },
+    { color: C.stud,    label: 'Stud' },
+  ]
+  return (
+    <g transform={`translate(${x},${y})`}
+       fontFamily="'Helvetica Neue',Arial,sans-serif">
+      <text x={0} y={-6} fontSize={10} fontWeight={700} fill="#6b7280" letterSpacing={1}>LEGEND</text>
+      {items.map((it, i) => (
+        <g key={i} transform={`translate(0,${i * 18 + 8})`}>
+          <line x1={0} y1={6} x2={26} y2={6} stroke={it.color} strokeWidth={1.5} />
+          <text x={34} y={10} fontSize={11} fill="#374151">{it.label}</text>
+        </g>
+      ))}
+    </g>
+  )
+}
+
+// Arrow marker factory (one per color)
+function ArrowMarkers() {
+  return (
+    <>
+      {[
+        { id: 'g', color: C.wall },
+        { id: 'b', color: C.opening },
+        { id: 'r', color: C.stud },
+      ].map(({ id, color }) => (
+        <g key={id}>
+          <marker id={`arrow-${id}`} markerWidth="10" markerHeight="10" refX="5" refY="3"
+                  orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L6,3 L0,6" fill="none" stroke={color} strokeWidth={1.1} />
+          </marker>
+          <marker id={`arrowEnd-${id}`} markerWidth="10" markerHeight="10" refX="1" refY="3"
+                  orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M6,0 L0,3 L6,6" fill="none" stroke={color} strokeWidth={1.1} />
+          </marker>
+        </g>
+      ))}
+    </>
   )
 }
 
@@ -149,14 +249,7 @@ export default function FloorPlan() {
         style={{ background: '#fff', borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.13)' }}
       >
         <defs>
-          <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3"
-                  orient="auto" markerUnits="userSpaceOnUse">
-            <path d="M0,0 L6,3 L0,6" fill="none" stroke="#6b7280" strokeWidth={1.1} />
-          </marker>
-          <marker id="arrowEnd" markerWidth="10" markerHeight="10" refX="1" refY="3"
-                  orient="auto" markerUnits="userSpaceOnUse">
-            <path d="M6,0 L0,3 L6,6" fill="none" stroke="#6b7280" strokeWidth={1.1} />
-          </marker>
+          <ArrowMarkers />
           <clipPath id="roomClip">
             <polygon points={roomPoints} />
           </clipPath>
@@ -166,15 +259,15 @@ export default function FloorPlan() {
         </defs>
 
         {/* Title block */}
-        <text x={OX} y={50} fontSize={20} fontWeight={700} fill="#1a1a2e"
+        <text x={40} y={56} fontSize={22} fontWeight={700} fill="#1a1a2e"
               fontFamily="'Helvetica Neue',Arial,sans-serif">
           A-Frame Cabin — Ground Floor
         </text>
-        <text x={OX} y={72} fontSize={13} fill="#6b7280"
+        <text x={40} y={80} fontSize={13} fill="#6b7280"
               fontFamily="'Helvetica Neue',Arial,sans-serif">
           Kitchen &amp; Living Room  ·  Scale 1:100  ·  Area ≈ {area} m²
         </text>
-        <line x1={OX} y1={82} x2={svgW - 40} y2={82} stroke="#e5e0d8" strokeWidth={1} />
+        <line x1={40} y1={100} x2={svgW - 40} y2={100} stroke="#e5e0d8" strokeWidth={1} />
 
         {/* Floor fill */}
         <polygon points={roomPoints} fill="#f0ebe0" />
@@ -182,74 +275,41 @@ export default function FloorPlan() {
         {/* Grid */}
         <Grid />
 
-
         {/* Walls with shadow */}
         <polygon points={roomPoints} fill="none" stroke="#1e1e1e" strokeWidth={10}
                  strokeLinejoin="miter" filter="url(#wallShadow)" />
 
-        {/* Entrance gap */}
+        {/* Entrance gap + jambs */}
         <line x1={ex1} y1={ey} x2={ex2} y2={ey} stroke="#fff" strokeWidth={13} />
-        {/* Door jambs */}
         <line x1={ex1} y1={ey - 8} x2={ex1} y2={ey + 4} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
         <line x1={ex2} y1={ey - 8} x2={ex2} y2={ey + 4} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-        {/* Entrance label */}
-        <text x={(ex1 + ex2) / 2} y={ey - 14} textAnchor="middle"
-              fontSize={11} fill="#3a7ca5" fontWeight={600}
+        {/* Entrance label — outside the room, under the wall */}
+        <text x={(ex1 + ex2) / 2} y={ey + 22} textAnchor="middle"
+              fontSize={11} fill={C.opening} fontWeight={700} letterSpacing={1.5}
               fontFamily="'Helvetica Neue',Arial,sans-serif">ENTRANCE</text>
 
-        {/* Window on top wall */}
+        {/* Window — top wall */}
         {(() => {
           const wx1 = px(WIN2_X1), wx2 = px(WIN2_X2), wy = py(0)
           return (
             <g>
               <line x1={wx1} y1={wy} x2={wx2} y2={wy} stroke="#fff" strokeWidth={13} />
               <rect x={wx1} y={wy - 8} width={wx2 - wx1} height={16}
-                    fill="rgba(147,210,235,0.35)" stroke="#3a7ca5" strokeWidth={1.5} />
+                    fill="rgba(147,210,235,0.4)" stroke={C.opening} strokeWidth={1.5} />
               <line x1={(wx1 + wx2) / 2} y1={wy - 8} x2={(wx1 + wx2) / 2} y2={wy + 8}
-                    stroke="#3a7ca5" strokeWidth={1} />
+                    stroke={C.opening} strokeWidth={1} />
             </g>
           )
         })()}
 
-        {/* Wood stud 15x15cm */}
-        <rect
-          x={px(STUD_X)} y={py(STUD_Y)}
-          width={STUD_SIZE * SCALE} height={STUD_SIZE * SCALE}
-          fill="#6b5744" stroke="#3d2f1f" strokeWidth={1}
-        />
-        {/* Hatch lines inside stud */}
-        <line x1={px(STUD_X)} y1={py(STUD_Y)} x2={px(STUD_X + STUD_SIZE)} y2={py(STUD_Y + STUD_SIZE)}
-              stroke="#3d2f1f" strokeWidth={0.8} />
-        <line x1={px(STUD_X)} y1={py(STUD_Y + STUD_SIZE)} x2={px(STUD_X + STUD_SIZE)} y2={py(STUD_Y)}
-              stroke="#3d2f1f" strokeWidth={0.8} />
-        {/* Dimension: 1.20m from right wall to stud */}
-        <HDim x1m={STUD_X + STUD_SIZE} x2m={W_BOTTOM} ym={STUD_Y + STUD_SIZE / 2} label="1.20 m" above gap={28} />
-        {/* Dimension: 2.30m from bottom wall to stud */}
-        <VDim xm={STUD_X + STUD_SIZE / 2} y1m={STUD_Y + STUD_SIZE} y2m={H_LEFT} label="2.30 m" side="left" gap={36} />
+        {/* Window — right wall */}
+        <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={13} />
+        <rect x={wx - 8} y={wy1} width={16} height={wy2 - wy1}
+              fill="rgba(147,210,235,0.4)" stroke={C.opening} strokeWidth={1.5} />
+        <line x1={wx - 8} y1={(wy1 + wy2) / 2} x2={wx + 8} y2={(wy1 + wy2) / 2}
+              stroke={C.opening} strokeWidth={1} />
 
-        {/* Wood stud 2 — alongside left wall */}
-        <rect x={px(STUD2_X)} y={py(STUD2_Y)} width={STUD_SIZE * SCALE} height={STUD_SIZE * SCALE}
-              fill="#6b5744" stroke="#3d2f1f" strokeWidth={1} />
-        <line x1={px(STUD2_X)} y1={py(STUD2_Y)} x2={px(STUD2_X + STUD_SIZE)} y2={py(STUD2_Y + STUD_SIZE)}
-              stroke="#3d2f1f" strokeWidth={0.8} />
-        <line x1={px(STUD2_X)} y1={py(STUD2_Y + STUD_SIZE)} x2={px(STUD2_X + STUD_SIZE)} y2={py(STUD2_Y)}
-              stroke="#3d2f1f" strokeWidth={0.8} />
-        {/* Dims: 1.20m from left wall, 3.30m from top */}
-        <HDim x1m={0} x2m={STUD2_X} ym={STUD2_Y + STUD_SIZE / 2} label="1.20 m" above gap={28} />
-        <VDim xm={STUD2_X + STUD_SIZE / 2} y1m={0} y2m={STUD2_Y} label="3.30 m" side="left" gap={36} />
-
-        {/* Wood stud 3 — left wall, 2.30m from bottom */}
-        <rect x={px(STUD3_X)} y={py(STUD3_Y)} width={STUD_SIZE * SCALE} height={STUD_SIZE * SCALE}
-              fill="#6b5744" stroke="#3d2f1f" strokeWidth={1} />
-        <line x1={px(STUD3_X)} y1={py(STUD3_Y)} x2={px(STUD3_X + STUD_SIZE)} y2={py(STUD3_Y + STUD_SIZE)}
-              stroke="#3d2f1f" strokeWidth={0.8} />
-        <line x1={px(STUD3_X)} y1={py(STUD3_Y + STUD_SIZE)} x2={px(STUD3_X + STUD_SIZE)} y2={py(STUD3_Y)}
-              stroke="#3d2f1f" strokeWidth={0.8} />
-        {/* Dims: 1.20m from left wall, 2.30m from bottom */}
-        <HDim x1m={0} x2m={STUD3_X} ym={STUD3_Y + STUD_SIZE / 2} label="1.20 m" above gap={28} />
-        <VDim xm={STUD3_X + STUD_SIZE / 2} y1m={STUD3_Y + STUD_SIZE} y2m={H_LEFT} label="2.30 m" side="left" gap={36} />
-
-        {/* Terrace door on right wall */}
+        {/* Terrace door — right wall */}
         {(() => {
           const dy1 = py(STEP_Y)
           const dy2 = py(STEP_Y + TDOOR_WIDTH)
@@ -257,55 +317,53 @@ export default function FloorPlan() {
           return (
             <g>
               <line x1={dx} y1={dy1} x2={dx} y2={dy2} stroke="#fff" strokeWidth={13} />
-              {/* door jambs */}
               <line x1={dx - 6} y1={dy1} x2={dx + 6} y2={dy1} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
               <line x1={dx - 6} y1={dy2} x2={dx + 6} y2={dy2} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-              {/* door swing arc (opens outward to the right) */}
-              <path
-                d={`M ${dx} ${dy1} A ${TDOOR_WIDTH * SCALE} ${TDOOR_WIDTH * SCALE} 0 0 1 ${dx + TDOOR_WIDTH * SCALE} ${dy2}`}
-                fill="rgba(58,124,165,0.06)" stroke="#3a7ca5" strokeWidth={1.2} strokeDasharray="5,3"
-              />
+              <path d={`M ${dx} ${dy1} A ${TDOOR_WIDTH * SCALE} ${TDOOR_WIDTH * SCALE} 0 0 1 ${dx + TDOOR_WIDTH * SCALE} ${dy2}`}
+                    fill="rgba(58,124,165,0.06)" stroke={C.opening} strokeWidth={1.2} strokeDasharray="5,3" />
               <line x1={dx} y1={dy1} x2={dx + TDOOR_WIDTH * SCALE} y2={dy2}
-                    stroke="#3a7ca5" strokeWidth={1.2} />
+                    stroke={C.opening} strokeWidth={1.2} />
             </g>
           )
         })()}
 
-        {/* Window on right wall */}
-        <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={13} />
-        <rect x={wx - 8} y={wy1} width={16} height={wy2 - wy1}
-              fill="rgba(147,210,235,0.35)" stroke="#3a7ca5" strokeWidth={1.5} />
-        <line x1={wx - 8} y1={(wy1 + wy2) / 2} x2={wx + 8} y2={(wy1 + wy2) / 2}
-              stroke="#3a7ca5" strokeWidth={1} />
+        {/* Studs */}
+        {STUDS.map(s => <Stud key={s.id} stud={s} />)}
+        {STUDS.map(s => <StudDims key={s.id} stud={s} />)}
 
-        {/* ── Dimensions ── */}
-        <HDim x1m={0} x2m={W_TOP}    ym={0}      label="3.30 m" above    gap={40} />
-        {/* Top wall window dims */}
-        <HDim x1m={WIN2_X1} x2m={WIN2_X2}        ym={0} label="0.70 m" above gap={76} />
-        <HDim x1m={WIN2_X2} x2m={W_TOP}           ym={0} label="1.10 m" above gap={76} />
-        <VDim xm={0}  y1m={0} y2m={H_LEFT}       label="8.20 m" side="left" gap={55} />
-        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y}    label="3.40 m" side="right" gap={38} />
-        <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label="3.30 m" above={false} gap={30} />
-        <HDim x1m={0} x2m={ENT_LEFT}             ym={H_LEFT} label="1.30 m" above={false} gap={55} />
-        <HDim x1m={ENT_LEFT} x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} gap={55} />
-        <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM}  ym={H_LEFT} label="1.40 m" above={false} gap={55} />
-        <HDim x1m={0} x2m={W_BOTTOM}             ym={H_LEFT} label="6.60 m" above={false} gap={105} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT}          label="4.80 m" side="right" gap={130} />
-        {/* Terrace door dim */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y}              y2m={STEP_Y + TDOOR_WIDTH} label="1.05 m" side="right" gap={55} />
-        {/* Gap between door and window */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + TDOOR_WIDTH} y2m={STEP_Y + WIN_FROM_TOP} label="1.25 m" side="right" gap={55} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP}              y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} label="1.20 m" side="right" gap={55} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                            label="1.30 m" side="right" gap={55} />
+        {/* ── Wall dimensions (gray) ── */}
+        <HDim x1m={0} x2m={W_TOP}    ym={0}      label="3.30 m" above gap={48} />
+        <VDim xm={0}  y1m={0} y2m={H_LEFT}       label="8.20 m" side="left"  gap={70} />
+        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y}    label="3.40 m" side="right" gap={46} />
+        <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label="3.30 m" above={false} gap={32} />
+        <HDim x1m={0} x2m={W_BOTTOM}             ym={H_LEFT} label="6.60 m" above={false} gap={120} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT}    label="4.80 m" side="right" gap={155} />
+
+        {/* ── Opening dimensions (blue) ── */}
+        {/* Top wall window */}
+        <HDim x1m={WIN2_X1} x2m={WIN2_X2}   ym={0} label="0.70 m" above gap={86} color={C.opening} />
+        <HDim x1m={WIN2_X2} x2m={W_TOP}     ym={0} label="1.10 m" above gap={86} color={C.opening} />
+        {/* Entrance segments */}
+        <HDim x1m={0} x2m={ENT_LEFT}                  ym={H_LEFT} label="1.30 m" above={false} gap={62} color={C.opening} />
+        <HDim x1m={ENT_LEFT} x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} gap={62} color={C.opening} />
+        <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM} ym={H_LEFT} label="1.40 m" above={false} gap={62} color={C.opening} />
+        {/* Right wall: door + gap + window + bottom */}
+        <VDim xm={W_BOTTOM} y1m={STEP_Y}              y2m={STEP_Y + TDOOR_WIDTH}                  label="1.05 m" side="right" gap={62} color={C.opening} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + TDOOR_WIDTH} y2m={STEP_Y + WIN_FROM_TOP}                label="1.25 m" side="right" gap={62} color={C.opening} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP} y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT}  label="1.20 m" side="right" gap={62} color={C.opening} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                  label="1.30 m" side="right" gap={62} color={C.opening} />
 
         {/* Compass */}
-        <Compass x={svgW - 55} y={svgH - 55} />
+        <Compass x={svgW - 60} y={svgH - 70} />
 
-        {/* Footer line */}
-        <line x1={40} y1={svgH - 28} x2={svgW - 40} y2={svgH - 28} stroke="#e5e0d8" strokeWidth={1} />
+        {/* Legend */}
+        <Legend x={40} y={svgH - 90} />
+
+        {/* Footer */}
+        <line x1={40} y1={svgH - 30} x2={svgW - 40} y2={svgH - 30} stroke="#e5e0d8" strokeWidth={1} />
         <text x={40} y={svgH - 12} fontSize={10} fill="#9ca3af"
               fontFamily="'Helvetica Neue',Arial,sans-serif">
-          A-Frame Cabin Design  ·  Ground Floor  ·  All dimensions in meters
+          All dimensions in meters  ·  Studs are 15×15 cm
         </text>
       </svg>
     </div>
