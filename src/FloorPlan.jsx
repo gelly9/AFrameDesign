@@ -5,6 +5,7 @@ import {
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
 } from './cabinData.js'
+import Kitchen from './Kitchen'
 
 const SCALE = 95
 
@@ -329,6 +330,9 @@ export default function FloorPlan() {
             </g>
           )
         })()}
+
+        {/* Kitchen run */}
+        <Kitchen px={px} py={py} scale={SCALE} />
 
         {/* Staircase — runs horizontally, ascends right */}
         {(() => {

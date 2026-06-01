@@ -104,5 +104,24 @@ export const STAIR_X1 = STAIR_X2 - STAIR.run                            // 3.10 
 export const STAIR_Y1 = STEP_Y                                         // 3.40 (against inner wall)
 export const STAIR_Y2 = STAIR_Y1 + STAIR.width                          // 4.40 (bottom)
 
+// ── Kitchen run ───────────────────────────────────────────────────
+// A single 3.20m straight run along the RIGHT wall, starting at the
+// bottom (6.60m) wall and running up (north). Counter depth 0.60m.
+// Unit 01 is at the bottom; 06 (fridge) at the top. Widths in meters.
+export const KITCHEN = {
+  wall:   'right',    // runs along x = W_BOTTOM
+  anchor: 'bottom',   // first unit starts at y = H_LEFT
+  depth:  0.60,       // counter depth (into the room, -x)
+  units: [
+    { id: '01', type: 'cabinet',    label: 'End cabinet, drawers',        w: 0.50 },
+    { id: '02', type: 'dishwasher', label: 'Slim dishwasher, integrated', w: 0.45 },
+    { id: '03', type: 'sink',       label: 'Undermount sink, single bowl', w: 0.80 },
+    { id: '04', type: 'hob',        label: 'Induction hob + drawers',     w: 0.60 },
+    { id: '05', type: 'counter',    label: 'Landing zone / buffer',       w: 0.25 },
+    { id: '06', type: 'fridge',     label: 'Fridge column, full height',  w: 0.60 },
+  ],
+}
+export const KITCHEN_RUN = KITCHEN.units.reduce((s, u) => s + u.w, 0)  // 3.20m
+
 // ── Total floor area (m²) ─────────────────────────────────────────
 export const FLOOR_AREA = W_TOP * H_LEFT + STEP_W * H_RIGHT
