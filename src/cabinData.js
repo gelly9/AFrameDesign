@@ -87,5 +87,22 @@ export const STUDS = [
   { id: 'S3', cx: 1.20,            cy: H_LEFT - 2.30 },
 ]
 
+// ── Staircase ─────────────────────────────────────────────────────
+// 1.00m wide × 2.50m run, running horizontally and ascending to the
+// RIGHT (toward the terrace). Sits against the inner step wall
+// (top edge at y = STEP_Y); right edge is 1m from the right wall.
+export const STAIR = {
+  width: 1.00,                       // extent across travel (y)
+  run:   2.50,                       // extent along travel (x)
+  gapFromRightWall: 1.00,            // right edge offset left of W_BOTTOM
+  treadDepth: 0.25,                  // tread spacing
+  ascend: 'right',                   // arrow points right (toward terrace)
+}
+// Derived footprint (plan coords)
+export const STAIR_X2 = W_BOTTOM - STAIR.gapFromRightWall               // 5.60 (right)
+export const STAIR_X1 = STAIR_X2 - STAIR.run                            // 3.10 (left)
+export const STAIR_Y1 = STEP_Y                                         // 3.40 (against inner wall)
+export const STAIR_Y2 = STAIR_Y1 + STAIR.width                          // 4.40 (bottom)
+
 // ── Total floor area (m²) ─────────────────────────────────────────
 export const FLOOR_AREA = W_TOP * H_LEFT + STEP_W * H_RIGHT

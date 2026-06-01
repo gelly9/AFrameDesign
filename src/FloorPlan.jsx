@@ -3,6 +3,7 @@ import {
   ROOM_POLYGON,
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
+  STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
 } from './cabinData.js'
 
 const SCALE = 95
@@ -328,6 +329,35 @@ export default function FloorPlan() {
             </g>
           )
         })()}
+
+        {/* Staircase — runs horizontally, ascends right */}
+        {(() => {
+          const x1 = px(STAIR_X1), x2 = px(STAIR_X2)
+          const y1 = py(STAIR_Y1), y2 = py(STAIR_Y2)
+          const nTreads = Math.round(STAIR.run / STAIR.treadDepth)
+          const treads = []
+          for (let i = 1; i < nTreads; i++) {
+            const tx = px(STAIR_X1 + i * STAIR.treadDepth)
+            treads.push(<line key={i} x1={tx} y1={y1} x2={tx} y2={y2} stroke="#9a8c74" strokeWidth={1} />)
+          }
+          const cyMid = (y1 + y2) / 2
+          return (
+            <g>
+              <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1}
+                    fill="rgba(154,140,116,0.12)" stroke="#7a6a52" strokeWidth={1.5} />
+              {treads}
+              {/* Arrow along centerline (ascends toward the right) */}
+              <line x1={x1 + 10} y1={cyMid} x2={x2 - 10} y2={cyMid}
+                    stroke="#7a6a52" strokeWidth={1.5} markerEnd="url(#arrow-g)" />
+              <text x={x1 + 14} y={cyMid - 7} textAnchor="start"
+                    fontSize={11} fontWeight={700} fill="#7a6a52" letterSpacing={1}
+                    fontFamily="'Helvetica Neue',Arial,sans-serif">UP</text>
+            </g>
+          )
+        })()}
+        {/* Staircase dims: 1m gap to right wall + 1m width */}
+        <HDim x1m={STAIR_X2} x2m={W_BOTTOM} ym={STAIR_Y1 + STAIR.width / 2} label="1.00 m" above color="#7a6a52" gap={26} />
+        <VDim xm={STAIR_X1} y1m={STAIR_Y1} y2m={STAIR_Y2} label="1.00 m" side="left" gap={40} color="#7a6a52" />
 
         {/* Studs */}
         {STUDS.map(s => <Stud key={s.id} stud={s} />)}
