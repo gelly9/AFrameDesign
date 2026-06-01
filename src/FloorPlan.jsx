@@ -1,43 +1,35 @@
-// All measurements in meters, converted to px via SCALE
-const SCALE = 90
+const SCALE = 95
 
-// Outer wall dimensions
 const W_TOP    = 3.30
 const H_LEFT   = 8.20
 const W_BOTTOM = 6.60
 const H_RIGHT  = 4.80
-const STEP_Y   = H_LEFT - H_RIGHT   // 4.45m
+const STEP_Y   = H_LEFT - H_RIGHT   // 3.40m
 const STEP_W   = W_BOTTOM - W_TOP   // 3.30m
 
-// Entrance
 const ENT_LEFT  = 1.30
 const ENT_WIDTH = 3.80
 
-// Window on right wall: 1.30m from bottom, 1.20m tall
 const WIN_HEIGHT   = 1.20
 const WIN_FROM_BOT = 1.30
-const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // derived: 4.80 - 1.30 - 1.20 = 2.30m
+const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // 2.30m
 
-// Canvas layout
-const MARGIN_L = 90
-const MARGIN_T = 90   // room for title + top dim
-const MARGIN_R = 180  // room for right wall + window dims + 3.75m
-const MARGIN_B = 140  // room for entrance dims + legend
+const MARGIN_L = 130
+const MARGIN_T = 120
+const MARGIN_R = 220
+const MARGIN_B = 160
 
 const roomW = W_BOTTOM * SCALE
 const roomH = H_LEFT   * SCALE
 const svgW  = MARGIN_L + roomW + MARGIN_R
 const svgH  = MARGIN_T + roomH + MARGIN_B
 
-// Room origin
 const OX = MARGIN_L
 const OY = MARGIN_T
 
-// Helper: meter → px (x)
 const px = m => OX + m * SCALE
 const py = m => OY + m * SCALE
 
-// L-shape polygon string
 const roomPoints = [
   [0,        0      ],
   [W_TOP,    0      ],
@@ -47,153 +39,169 @@ const roomPoints = [
   [0,        H_LEFT ],
 ].map(([x, y]) => `${px(x)},${py(y)}`).join(' ')
 
-// Grid lines (1m spacing)
 function Grid() {
   const lines = []
-  for (let x = 1; x < W_BOTTOM; x++) {
+  for (let x = 1; x < W_BOTTOM; x++)
     lines.push(<line key={`gx${x}`} x1={px(x)} y1={py(0)} x2={px(x)} y2={py(H_LEFT)} />)
-  }
-  for (let y = 1; y < H_LEFT; y++) {
+  for (let y = 1; y < H_LEFT; y++)
     lines.push(<line key={`gy${y}`} x1={px(0)} y1={py(y)} x2={px(W_BOTTOM)} y2={py(y)} />)
-  }
   return (
-    <g clipPath="url(#roomClip)" stroke="#c8bfa9" strokeWidth={0.6} opacity={0.7}>
+    <g clipPath="url(#roomClip)" stroke="#d4cabb" strokeWidth={0.6} opacity={0.6}>
       {lines}
     </g>
   )
 }
 
-// Dimension: horizontal
 function HDim({ x1m, x2m, ym, label, above = true, gap = 32 }) {
-  const sign  = above ? -1 : 1
-  const yPx   = py(ym) + sign * gap
-  const x1Px  = px(x1m)
-  const x2Px  = px(x2m)
-  const midX  = (x1Px + x2Px) / 2
+  const sign = above ? -1 : 1
+  const yL   = py(ym) + sign * gap
+  const x1   = px(x1m), x2 = px(x2m), mx = (x1 + x2) / 2
   return (
-    <g stroke="#6b7280" strokeWidth={1.1} fill="#374151" fontSize={13}>
-      <line x1={x1Px} y1={py(ym)} x2={x1Px} y2={yPx} stroke="#9ca3af" strokeWidth={0.8} />
-      <line x1={x2Px} y1={py(ym)} x2={x2Px} y2={yPx} stroke="#9ca3af" strokeWidth={0.8} />
-      <line x1={x1Px} y1={yPx} x2={x2Px} y2={yPx}
+    <g>
+      <line x1={x1} y1={py(ym)} x2={x1} y2={yL} stroke="#b0b8c4" strokeWidth={0.8} />
+      <line x1={x2} y1={py(ym)} x2={x2} y2={yL} stroke="#b0b8c4" strokeWidth={0.8} />
+      <line x1={x1} y1={yL} x2={x2} y2={yL} stroke="#6b7280" strokeWidth={1.1}
             markerStart="url(#arrowEnd)" markerEnd="url(#arrow)" />
-      <rect x={midX - 22} y={yPx + (above ? -18 : 2)} width={44} height={16} fill="#fff" />
-      <text x={midX} y={yPx + (above ? -5 : 14)} textAnchor="middle">{label}</text>
+      <rect x={mx - 24} y={yL + (above ? -17 : 3)} width={48} height={15}
+            fill="#fff" rx={2} />
+      <text x={mx} y={yL + (above ? -5 : 13)} textAnchor="middle"
+            fontSize={12} fill="#374151" fontFamily="'Helvetica Neue',Arial,sans-serif">
+        {label}
+      </text>
     </g>
   )
 }
 
-// Dimension: vertical
 function VDim({ xm, y1m, y2m, label, side = 'right', gap = 40 }) {
-  const sign  = side === 'right' ? 1 : -1
-  const xPx   = px(xm) + sign * gap
-  const y1Px  = py(y1m)
-  const y2Px  = py(y2m)
-  const midY  = (y1Px + y2Px) / 2
+  const sign = side === 'right' ? 1 : -1
+  const xL   = px(xm) + sign * gap
+  const y1   = py(y1m), y2 = py(y2m), my = (y1 + y2) / 2
+  const tw   = 44
   return (
-    <g stroke="#6b7280" strokeWidth={1.1} fill="#374151" fontSize={13}>
-      <line x1={px(xm)} y1={y1Px} x2={xPx} y2={y1Px} stroke="#9ca3af" strokeWidth={0.8} />
-      <line x1={px(xm)} y1={y2Px} x2={xPx} y2={y2Px} stroke="#9ca3af" strokeWidth={0.8} />
-      <line x1={xPx} y1={y1Px} x2={xPx} y2={y2Px}
+    <g>
+      <line x1={px(xm)} y1={y1} x2={xL} y2={y1} stroke="#b0b8c4" strokeWidth={0.8} />
+      <line x1={px(xm)} y1={y2} x2={xL} y2={y2} stroke="#b0b8c4" strokeWidth={0.8} />
+      <line x1={xL} y1={y1} x2={xL} y2={y2} stroke="#6b7280" strokeWidth={1.1}
             markerStart="url(#arrowEnd)" markerEnd="url(#arrow)" />
-      <rect x={xPx + (side === 'right' ? 4 : -44)} y={midY - 8} width={40} height={16} fill="#fff" />
-      <text
-        x={xPx + (side === 'right' ? 24 : -24)} y={midY + 5}
-        textAnchor="middle"
-      >{label}</text>
+      <rect x={xL + (side === 'right' ? 3 : -tw - 3)} y={my - 8} width={tw} height={16}
+            fill="#fff" rx={2} />
+      <text x={xL + (side === 'right' ? tw / 2 + 3 : -tw / 2 - 3)} y={my + 5}
+            textAnchor="middle" fontSize={12} fill="#374151"
+            fontFamily="'Helvetica Neue',Arial,sans-serif">
+        {label}
+      </text>
+    </g>
+  )
+}
+
+function Compass({ x, y, r = 22 }) {
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <circle cx={0} cy={0} r={r} fill="#f9f8f6" stroke="#d1cfc9" strokeWidth={1} />
+      <polygon points={`0,${-r + 4} ${r / 4},0 0,${r / 4} ${-r / 4},0`} fill="#374151" />
+      <polygon points={`0,${r - 4} ${r / 4},0 0,${-r / 4} ${-r / 4},0`} fill="#c9c5bc" />
+      <text x={0} y={-r - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="#374151"
+            fontFamily="'Helvetica Neue',Arial,sans-serif">N</text>
     </g>
   )
 }
 
 export default function FloorPlan() {
-  // Entrance SVG coords (bottom wall)
   const ex1 = px(ENT_LEFT)
   const ex2 = px(ENT_LEFT + ENT_WIDTH)
   const ey  = py(H_LEFT)
-
-  // Window SVG coords (right wall)
   const wy1 = py(STEP_Y + WIN_FROM_TOP)
   const wy2 = py(STEP_Y + WIN_FROM_TOP + WIN_HEIGHT)
   const wx  = px(W_BOTTOM)
+  const area = (W_TOP * H_LEFT + STEP_W * H_RIGHT).toFixed(1)
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'2rem', background:'#f8f6f2', minHeight:'100vh' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      padding: '3rem', background: '#eeeae4', minHeight: '100vh'
+    }}>
       <svg
         width={svgW} height={svgH}
         viewBox={`0 0 ${svgW} ${svgH}`}
-        fontFamily="'Helvetica Neue', Arial, sans-serif"
-        style={{ background:'#fff', borderRadius:10, boxShadow:'0 4px 24px rgba(0,0,0,0.10)' }}
+        style={{ background: '#fff', borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.13)' }}
       >
         <defs>
-          <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3"
+                  orient="auto" markerUnits="userSpaceOnUse">
             <path d="M0,0 L6,3 L0,6" fill="none" stroke="#6b7280" strokeWidth={1.1} />
           </marker>
-          <marker id="arrowEnd" markerWidth="10" markerHeight="10" refX="1" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+          <marker id="arrowEnd" markerWidth="10" markerHeight="10" refX="1" refY="3"
+                  orient="auto" markerUnits="userSpaceOnUse">
             <path d="M6,0 L0,3 L6,6" fill="none" stroke="#6b7280" strokeWidth={1.1} />
           </marker>
           <clipPath id="roomClip">
             <polygon points={roomPoints} />
           </clipPath>
+          <filter id="wallShadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="#00000022" />
+          </filter>
         </defs>
 
-        {/* Title */}
-        <text x={OX} y={MARGIN_T - 50} fontSize={17} fontWeight={600} fill="#1f2937">
-          Ground Floor — Kitchen &amp; Living Room
+        {/* Title block */}
+        <text x={OX} y={50} fontSize={20} fontWeight={700} fill="#1a1a2e"
+              fontFamily="'Helvetica Neue',Arial,sans-serif">
+          A-Frame Cabin — Ground Floor
         </text>
+        <text x={OX} y={72} fontSize={13} fill="#6b7280"
+              fontFamily="'Helvetica Neue',Arial,sans-serif">
+          Kitchen &amp; Living Room  ·  Scale 1:100  ·  Area ≈ {area} m²
+        </text>
+        <line x1={OX} y1={82} x2={svgW - 40} y2={82} stroke="#e5e0d8" strokeWidth={1} />
 
         {/* Floor fill */}
-        <polygon points={roomPoints} fill="#f4efe6" />
+        <polygon points={roomPoints} fill="#f0ebe0" />
 
         {/* Grid */}
         <Grid />
 
-        {/* Walls — thick, drawn on top */}
-        <polygon
-          points={roomPoints}
-          fill="none"
-          stroke="#2b2b2b"
-          strokeWidth={9}
-          strokeLinejoin="miter"
-        />
+
+        {/* Walls with shadow */}
+        <polygon points={roomPoints} fill="none" stroke="#1e1e1e" strokeWidth={10}
+                 strokeLinejoin="miter" filter="url(#wallShadow)" />
 
         {/* Entrance gap */}
-        <line x1={ex1} y1={ey} x2={ex2} y2={ey} stroke="#fff" strokeWidth={11} />
-
+        <line x1={ex1} y1={ey} x2={ex2} y2={ey} stroke="#fff" strokeWidth={13} />
+        {/* Door jambs */}
+        <line x1={ex1} y1={ey - 8} x2={ex1} y2={ey + 4} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+        <line x1={ex2} y1={ey - 8} x2={ex2} y2={ey + 4} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+        {/* Entrance label */}
+        <text x={(ex1 + ex2) / 2} y={ey - 14} textAnchor="middle"
+              fontSize={11} fill="#3a7ca5" fontWeight={600}
+              fontFamily="'Helvetica Neue',Arial,sans-serif">ENTRANCE</text>
 
         {/* Window on right wall */}
-        <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={11} />
-        <rect x={wx - 7} y={wy1} width={14} height={wy2 - wy1}
-              fill="rgba(180,220,240,0.4)" stroke="#3a7ca5" strokeWidth={1.2} />
-        <line x1={wx - 7} y1={(wy1 + wy2) / 2} x2={wx + 7} y2={(wy1 + wy2) / 2}
-              stroke="#3a7ca5" strokeWidth={0.9} />
+        <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={13} />
+        <rect x={wx - 8} y={wy1} width={16} height={wy2 - wy1}
+              fill="rgba(147,210,235,0.35)" stroke="#3a7ca5" strokeWidth={1.5} />
+        <line x1={wx - 8} y1={(wy1 + wy2) / 2} x2={wx + 8} y2={(wy1 + wy2) / 2}
+              stroke="#3a7ca5" strokeWidth={1} />
 
         {/* ── Dimensions ── */}
-        {/* Top: 3.30m */}
-        <HDim x1m={0} x2m={W_TOP} ym={0} label="3.30 m" above gap={36} />
-        {/* Left: 8.20m */}
-        <VDim xm={0} y1m={0} y2m={H_LEFT} label="8.20 m" side="left" gap={50} />
+        <HDim x1m={0} x2m={W_TOP}    ym={0}      label="3.30 m" above    gap={40} />
+        <VDim xm={0}  y1m={0} y2m={H_LEFT}       label="8.20 m" side="left" gap={55} />
+        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y}    label="3.40 m" side="right" gap={38} />
+        <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label="3.30 m" above={false} gap={30} />
+        <HDim x1m={0} x2m={ENT_LEFT}             ym={H_LEFT} label="1.30 m" above={false} gap={55} />
+        <HDim x1m={ENT_LEFT} x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} gap={55} />
+        <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM}  ym={H_LEFT} label="1.40 m" above={false} gap={55} />
+        <HDim x1m={0} x2m={W_BOTTOM}             ym={H_LEFT} label="6.60 m" above={false} gap={105} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT}    label="4.80 m" side="right" gap={130} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP}              y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} label="1.20 m" side="right" gap={55} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                            label="1.30 m" side="right" gap={55} />
 
-        {/* Inner step vertical: 3.40m (= 8.20 - 4.80) */}
-        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y} label="3.40 m" side="right" gap={36} />
-        {/* Inner step horizontal: 3.50m — clamped to wall */}
-        <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label="3.50 m" above={false} gap={28} />
+        {/* Compass */}
+        <Compass x={svgW - 55} y={svgH - 55} />
 
-        {/* Entrance sub-dims */}
-        <HDim x1m={0}                    x2m={ENT_LEFT}             ym={H_LEFT} label="1.30 m" above={false} gap={52} />
-        <HDim x1m={ENT_LEFT}             x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} gap={52} />
-        <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM}             ym={H_LEFT} label="1.40 m" above={false} gap={52} />
-        {/* Entrance total */}
-        <HDim x1m={0} x2m={W_BOTTOM} ym={H_LEFT} label="6.60 m" above={false} gap={100} />
-
-        {/* Right wall total */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT} label="4.80 m" side="right" gap={120} />
-
-        {/* Window dims: 1.20m opening, 1.30m from bottom */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP}              y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} label="1.20 m" side="right" gap={50} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                             label="1.30 m" side="right" gap={50} />
-
-        {/* Legend */}
-        <text x={OX} y={svgH - 16} fontSize={11.5} fill="#4b5563">
-          Total area ≈ {(W_TOP * H_LEFT + STEP_W * H_RIGHT).toFixed(1)} m²  ·  Entrance 3.80 m  ·  Window 1.20 m
+        {/* Footer line */}
+        <line x1={40} y1={svgH - 28} x2={svgW - 40} y2={svgH - 28} stroke="#e5e0d8" strokeWidth={1} />
+        <text x={40} y={svgH - 12} fontSize={10} fill="#9ca3af"
+              fontFamily="'Helvetica Neue',Arial,sans-serif">
+          A-Frame Cabin Design  ·  Ground Floor  ·  All dimensions in meters
         </text>
       </svg>
     </div>
