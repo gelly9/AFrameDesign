@@ -18,10 +18,18 @@ const WIN_HEIGHT   = 1.20
 const WIN_FROM_BOT = 1.30
 const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // 2.30m
 
-// Wood stud: 15x15cm, 1.20m from right wall, centered on window
+// Wood stud (right wall): 15x15cm, 1.20m from right wall, 2.30m from bottom
 const STUD_SIZE = 0.15
 const STUD_X    = W_BOTTOM - 1.20 - STUD_SIZE / 2
 const STUD_Y    = H_LEFT - 2.30 - STUD_SIZE / 2
+
+// Wood stud 2: 1.20m from left wall, 3.30m from top wall
+const STUD2_X   = 1.20 - STUD_SIZE / 2
+const STUD2_Y   = 3.30 - STUD_SIZE / 2
+
+// Wood stud 3: 1.20m from left wall, 2.30m from bottom wall
+const STUD3_X   = 1.20 - STUD_SIZE / 2
+const STUD3_Y   = H_LEFT - 2.30 - STUD_SIZE / 2
 
 // Window on top wall (3.30m back wall): 1.10m from right, 0.70m wide
 const WIN2_FROM_RIGHT = 1.10
@@ -218,6 +226,28 @@ export default function FloorPlan() {
         <HDim x1m={STUD_X + STUD_SIZE} x2m={W_BOTTOM} ym={STUD_Y + STUD_SIZE / 2} label="1.20 m" above gap={28} />
         {/* Dimension: 2.30m from bottom wall to stud */}
         <VDim xm={STUD_X + STUD_SIZE / 2} y1m={STUD_Y + STUD_SIZE} y2m={H_LEFT} label="2.30 m" side="left" gap={36} />
+
+        {/* Wood stud 2 — alongside left wall */}
+        <rect x={px(STUD2_X)} y={py(STUD2_Y)} width={STUD_SIZE * SCALE} height={STUD_SIZE * SCALE}
+              fill="#6b5744" stroke="#3d2f1f" strokeWidth={1} />
+        <line x1={px(STUD2_X)} y1={py(STUD2_Y)} x2={px(STUD2_X + STUD_SIZE)} y2={py(STUD2_Y + STUD_SIZE)}
+              stroke="#3d2f1f" strokeWidth={0.8} />
+        <line x1={px(STUD2_X)} y1={py(STUD2_Y + STUD_SIZE)} x2={px(STUD2_X + STUD_SIZE)} y2={py(STUD2_Y)}
+              stroke="#3d2f1f" strokeWidth={0.8} />
+        {/* Dims: 1.20m from left wall, 3.30m from top */}
+        <HDim x1m={0} x2m={STUD2_X} ym={STUD2_Y + STUD_SIZE / 2} label="1.20 m" above gap={28} />
+        <VDim xm={STUD2_X + STUD_SIZE / 2} y1m={0} y2m={STUD2_Y} label="3.30 m" side="left" gap={36} />
+
+        {/* Wood stud 3 — left wall, 2.30m from bottom */}
+        <rect x={px(STUD3_X)} y={py(STUD3_Y)} width={STUD_SIZE * SCALE} height={STUD_SIZE * SCALE}
+              fill="#6b5744" stroke="#3d2f1f" strokeWidth={1} />
+        <line x1={px(STUD3_X)} y1={py(STUD3_Y)} x2={px(STUD3_X + STUD_SIZE)} y2={py(STUD3_Y + STUD_SIZE)}
+              stroke="#3d2f1f" strokeWidth={0.8} />
+        <line x1={px(STUD3_X)} y1={py(STUD3_Y + STUD_SIZE)} x2={px(STUD3_X + STUD_SIZE)} y2={py(STUD3_Y)}
+              stroke="#3d2f1f" strokeWidth={0.8} />
+        {/* Dims: 1.20m from left wall, 2.30m from bottom */}
+        <HDim x1m={0} x2m={STUD3_X} ym={STUD3_Y + STUD_SIZE / 2} label="1.20 m" above gap={28} />
+        <VDim xm={STUD3_X + STUD_SIZE / 2} y1m={STUD3_Y + STUD_SIZE} y2m={H_LEFT} label="2.30 m" side="left" gap={36} />
 
         {/* Terrace door on right wall */}
         {(() => {
