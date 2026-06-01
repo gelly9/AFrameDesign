@@ -139,7 +139,7 @@ export const KITCHEN = {
   anchor: 'bottom',   // first unit starts at y = H_LEFT
   depth:  0.60,       // counter depth (into the room, -x)
   units: [
-    { id: '01', type: 'cabinet',    label: 'End cabinet, drawers',        w: 0.50 },
+    { id: '01', type: 'cabinet',    label: 'End cabinet, drawers',        w: 0.70 },
     { id: '02', type: 'dishwasher', label: 'Slim dishwasher, integrated', w: 0.45 },
     { id: '03', type: 'sink',       label: 'Undermount sink, single bowl', w: 0.80 },
     { id: '04', type: 'hob',        label: 'Induction hob + drawers',     w: 0.60 },
