@@ -1,5 +1,6 @@
 import {
   W_TOP, H_LEFT, W_BOTTOM, H_RIGHT, STEP_Y, STEP_W,
+  ROOM_POLYGON,
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
 } from './cabinData.js'
@@ -59,14 +60,7 @@ const C = {
   helper:  '#b0b8c4',  // extension lines
 }
 
-const roomPoints = [
-  [0,        0      ],
-  [W_TOP,    0      ],
-  [W_TOP,    STEP_Y ],
-  [W_BOTTOM, STEP_Y ],
-  [W_BOTTOM, H_LEFT ],
-  [0,        H_LEFT ],
-].map(([x, y]) => `${px(x)},${py(y)}`).join(' ')
+const roomPoints = ROOM_POLYGON.map(([x, y]) => `${px(x)},${py(y)}`).join(' ')
 
 function Grid() {
   const lines = []

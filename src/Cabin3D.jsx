@@ -1,9 +1,9 @@
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Grid, Environment } from '@react-three/drei'
-import { useMemo } from 'react'
+import { OrbitControls, Grid, Environment, Line, Text } from '@react-three/drei'
+import { useMemo, useState } from 'react'
 import * as THREE from 'three'
 import {
-  W_TOP, H_LEFT, W_BOTTOM, STEP_Y,
+  W_TOP, H_LEFT, W_BOTTOM, H_RIGHT, STEP_Y,
   WALL_HEIGHT,
   ROOM_POLYGON, WALL_SEGMENTS,
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
@@ -139,7 +139,52 @@ function Studs() {
   })
 }
 
+// ── Dimension annotations on the floor plane ──────────────────────
+// Each entry: edge endpoints in plan coords + an outward offset (plan)
+// and the length label. Drawn flat on the floor so it reads from above.
+const DIMS = [
+  { p: [0, 0],        q: [0, H_LEFT],        off: [-0.55, 0],  label: '8.20' },
+  { p: [0, H_LEFT],   q: [W_BOTTOM, H_LEFT], off: [0, 0.55],   label: '6.60' },
+  { p: [0, 0],        q: [W_TOP, 0],         off: [0, -0.55],  label: '3.30' },
+  { p: [W_BOTTOM, STEP_Y], q: [W_BOTTOM, H_LEFT], off: [0.55, 0], label: '4.80' },
+  { p: [W_TOP, 0],    q: [W_TOP, STEP_Y],    off: [0.45, 0],   label: '3.40' },
+  { p: [W_TOP, STEP_Y], q: [W_BOTTOM, STEP_Y], off: [0, -0.45], label: '3.30' },
+]
+
+function Dim({ p, q, off, label }) {
+  const y = 0.04
+  const a = [p[0] + off[0], y, p[1] + off[1]]
+  const b = [q[0] + off[0], y, q[1] + off[1]]
+  const mid = [(a[0] + b[0]) / 2, y + 0.01, (a[2] + b[2]) / 2]
+  // small ticks at each end
+  const tick = 0.12
+  const isVert = Math.abs(q[1] - p[1]) > Math.abs(q[0] - p[0])
+  const tA = isVert
+    ? [[a[0] - tick, y, a[2]], [a[0] + tick, y, a[2]]]
+    : [[a[0], y, a[2] - tick], [a[0], y, a[2] + tick]]
+  const tB = isVert
+    ? [[b[0] - tick, y, b[2]], [b[0] + tick, y, b[2]]]
+    : [[b[0], y, b[2] - tick], [b[0], y, b[2] + tick]]
+  return (
+    <group>
+      <Line points={[a, b]} color="#e2b84a" lineWidth={1.5} />
+      <Line points={tA} color="#e2b84a" lineWidth={1.5} />
+      <Line points={tB} color="#e2b84a" lineWidth={1.5} />
+      <Text position={mid} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.28}
+            color="#f0d480" anchorX="center" anchorY="middle"
+            outlineWidth={0.012} outlineColor="#1a1f2a">
+        {label}
+      </Text>
+    </group>
+  )
+}
+
+function Dimensions() {
+  return DIMS.map((d, i) => <Dim key={i} {...d} />)
+}
+
 export default function Cabin3D() {
+  const [showDims, setShowDims] = useState(true)
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
 
@@ -159,12 +204,27 @@ export default function Cabin3D() {
                   openings={OPENINGS.filter(o => o.wall === seg.id)} />
           ))}
           <Studs />
+          {showDims && <Dimensions />}
         </group>
 
         <Grid args={[30, 30]} cellColor="#3a4050" sectionColor="#2a3040"
               position={[0, -0.11, 0]} fadeDistance={28} infiniteGrid />
         <OrbitControls makeDefault target={[0, 1, 0]} />
       </Canvas>
+      <button
+        onClick={() => setShowDims(d => !d)}
+        style={{
+          position: 'absolute', top: 16, right: 16,
+          padding: '7px 14px', borderRadius: 6, cursor: 'pointer',
+          border: '1px solid rgba(255,255,255,0.15)',
+          background: showDims ? '#e2b84a' : 'rgba(0,0,0,0.45)',
+          color: showDims ? '#1a1f2a' : '#cbd5e1',
+          fontFamily: 'system-ui, sans-serif', fontSize: 12, fontWeight: 600,
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        {showDims ? 'Hide dimensions' : 'Show dimensions'}
+      </button>
       <div style={{
         position: 'absolute', bottom: 24, left: 24,
         color: '#cbd5e1', fontFamily: 'system-ui, sans-serif', fontSize: 12,
