@@ -4,10 +4,15 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
+  WALL_THICK,
 } from './cabinData.js'
 import Kitchen from './Kitchen'
 
 const SCALE = 95
+// Walls are drawn OUTWARD from the interior line: a centered stroke of
+// 2×thickness with the floor painted on top leaves only the outer half.
+const WALL_W = 2 * WALL_THICK * SCALE  // full centered stroke width (px)
+const BAND   = WALL_THICK * SCALE      // visible wall thickness (px)
 
 const ENT_LEFT  = ENTRANCE.fromLeft
 const ENT_WIDTH = ENTRANCE.width
@@ -144,14 +149,15 @@ function StudDims({ stud }) {
   return (
     <g>
       {stud.dims.map((d, i) => {
+        // Dimension to the stud CENTERLINE so the drawn line matches the label.
         if (d.kind === 'h' && d.from === 'right')
-          return <HDim key={i} x1m={x + STUD_SIZE} x2m={W_BOTTOM} ym={yMid} label={d.label} above gap={26} color={C.stud} />
+          return <HDim key={i} x1m={xMid} x2m={W_BOTTOM} ym={yMid} label={d.label} above gap={26} color={C.stud} />
         if (d.kind === 'h' && d.from === 'left')
-          return <HDim key={i} x1m={0} x2m={x} ym={yMid} label={d.label} above gap={26} color={C.stud} />
+          return <HDim key={i} x1m={0} x2m={xMid} ym={yMid} label={d.label} above gap={26} color={C.stud} />
         if (d.kind === 'v' && d.from === 'top')
-          return <VDim key={i} xm={xMid} y1m={0} y2m={y} label={d.label} side="left" gap={36} color={C.stud} />
+          return <VDim key={i} xm={xMid} y1m={0} y2m={yMid} label={d.label} side="left" gap={36} color={C.stud} />
         if (d.kind === 'v' && d.from === 'bottom')
-          return <VDim key={i} xm={xMid} y1m={y + STUD_SIZE} y2m={H_LEFT} label={d.label} side="left" gap={36} color={C.stud} />
+          return <VDim key={i} xm={xMid} y1m={yMid} y2m={H_LEFT} label={d.label} side="left" gap={36} color={C.stud} />
         return null
       })}
     </g>
@@ -254,56 +260,60 @@ export default function FloorPlan() {
         </text>
         <line x1={40} y1={100} x2={svgW - 40} y2={100} stroke="#e5e0d8" strokeWidth={1} />
 
-        {/* Floor fill */}
-        <polygon points={roomPoints} fill="#f0ebe0" />
+        {/* Walls — thick stroke centered on the interior line. The floor
+            is painted on top afterwards, leaving only the OUTER half, so
+            walls sit outside the interior dimensions (0.20m thick). */}
+        <polygon points={roomPoints} fill="none" stroke="#1e1e1e"
+                 strokeWidth={WALL_W} strokeLinejoin="miter" />
 
-        {/* Grid */}
+        {/* Opening gaps — erase the wall fully at each opening (before floor) */}
+        <g stroke="#fff" strokeWidth={WALL_W}>
+          <line x1={ex1} y1={ey} x2={ex2} y2={ey} />
+          <line x1={px(WIN2_X1)} y1={py(0)} x2={px(WIN2_X2)} y2={py(0)} />
+          <line x1={wx} y1={wy1} x2={wx} y2={wy2} />
+          <line x1={px(W_BOTTOM)} y1={py(STEP_Y)} x2={px(W_BOTTOM)} y2={py(STEP_Y + TDOOR_WIDTH)} />
+          <line x1={px(W_TOP)} y1={py(BDOOR_Y1)} x2={px(W_TOP)} y2={py(BDOOR_Y2)} />
+        </g>
+
+        {/* Floor + grid on top — covers the inner half of the walls */}
+        <polygon points={roomPoints} fill="#f0ebe0" />
         <Grid />
 
-        {/* Walls with shadow */}
-        <polygon points={roomPoints} fill="none" stroke="#1e1e1e" strokeWidth={10}
-                 strokeLinejoin="miter" filter="url(#wallShadow)" />
-
-        {/* Entrance gap + jambs */}
-        <line x1={ex1} y1={ey} x2={ex2} y2={ey} stroke="#fff" strokeWidth={13} />
-        <line x1={ex1} y1={ey - 8} x2={ex1} y2={ey + 4} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-        <line x1={ex2} y1={ey - 8} x2={ex2} y2={ey + 4} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-        {/* Entrance label — outside the room, under the wall */}
-        <text x={(ex1 + ex2) / 2} y={ey + 22} textAnchor="middle"
+        {/* Entrance jambs + label (wall band is outward, +y) */}
+        <line x1={ex1} y1={ey} x2={ex1} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+        <line x1={ex2} y1={ey} x2={ex2} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+        <text x={(ex1 + ex2) / 2} y={ey + BAND + 14} textAnchor="middle"
               fontSize={11} fill={C.opening} fontWeight={700} letterSpacing={1.5}
               fontFamily="'Helvetica Neue',Arial,sans-serif">ENTRANCE</text>
 
-        {/* Window — top wall */}
+        {/* Window — top wall (band outward, -y) */}
         {(() => {
           const wx1 = px(WIN2_X1), wx2 = px(WIN2_X2), wy = py(0)
           return (
             <g>
-              <line x1={wx1} y1={wy} x2={wx2} y2={wy} stroke="#fff" strokeWidth={13} />
-              <rect x={wx1} y={wy - 8} width={wx2 - wx1} height={16}
+              <rect x={wx1} y={wy - BAND} width={wx2 - wx1} height={BAND}
                     fill="rgba(147,210,235,0.4)" stroke={C.opening} strokeWidth={1.5} />
-              <line x1={(wx1 + wx2) / 2} y1={wy - 8} x2={(wx1 + wx2) / 2} y2={wy + 8}
+              <line x1={(wx1 + wx2) / 2} y1={wy - BAND} x2={(wx1 + wx2) / 2} y2={wy}
                     stroke={C.opening} strokeWidth={1} />
             </g>
           )
         })()}
 
-        {/* Window — right wall */}
-        <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={13} />
-        <rect x={wx - 8} y={wy1} width={16} height={wy2 - wy1}
+        {/* Window — right wall (band outward, +x) */}
+        <rect x={wx} y={wy1} width={BAND} height={wy2 - wy1}
               fill="rgba(147,210,235,0.4)" stroke={C.opening} strokeWidth={1.5} />
-        <line x1={wx - 8} y1={(wy1 + wy2) / 2} x2={wx + 8} y2={(wy1 + wy2) / 2}
+        <line x1={wx} y1={(wy1 + wy2) / 2} x2={wx + BAND} y2={(wy1 + wy2) / 2}
               stroke={C.opening} strokeWidth={1} />
 
-        {/* Terrace door — right wall */}
+        {/* Terrace door — right wall (band outward, +x; opens to terrace) */}
         {(() => {
           const dy1 = py(STEP_Y)
           const dy2 = py(STEP_Y + TDOOR_WIDTH)
           const dx  = px(W_BOTTOM)
           return (
             <g>
-              <line x1={dx} y1={dy1} x2={dx} y2={dy2} stroke="#fff" strokeWidth={13} />
-              <line x1={dx - 6} y1={dy1} x2={dx + 6} y2={dy1} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-              <line x1={dx - 6} y1={dy2} x2={dx + 6} y2={dy2} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              <line x1={dx} y1={dy1} x2={dx + BAND} y2={dy1} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              <line x1={dx} y1={dy2} x2={dx + BAND} y2={dy2} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
               <path d={`M ${dx} ${dy1} A ${TDOOR_WIDTH * SCALE} ${TDOOR_WIDTH * SCALE} 0 0 1 ${dx + TDOOR_WIDTH * SCALE} ${dy2}`}
                     fill="rgba(58,124,165,0.06)" stroke={C.opening} strokeWidth={1.2} strokeDasharray="5,3" />
               <line x1={dx} y1={dy1} x2={dx + TDOOR_WIDTH * SCALE} y2={dy2}
@@ -312,17 +322,15 @@ export default function FloorPlan() {
           )
         })()}
 
-        {/* Bathroom door — inner 3.40m wall (opens into the left/living side) */}
+        {/* Bathroom door — inner 3.40m wall (opens into the bathroom, +x) */}
         {(() => {
           const bx  = px(W_TOP)
           const by1 = py(BDOOR_Y1)
           const by2 = py(BDOOR_Y2)
           return (
             <g>
-              <line x1={bx} y1={by1} x2={bx} y2={by2} stroke="#fff" strokeWidth={13} />
-              <line x1={bx - 6} y1={by1} x2={bx + 6} y2={by1} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-              <line x1={bx - 6} y1={by2} x2={bx + 6} y2={by2} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-              {/* Swing arc opens to the right (into the bathroom) */}
+              <line x1={bx} y1={by1} x2={bx + BAND} y2={by1} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              <line x1={bx} y1={by2} x2={bx + BAND} y2={by2} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
               <path d={`M ${bx} ${by2} A ${BDOOR_WIDTH * SCALE} ${BDOOR_WIDTH * SCALE} 0 0 0 ${bx + BDOOR_WIDTH * SCALE} ${by1}`}
                     fill="rgba(58,124,165,0.06)" stroke={C.opening} strokeWidth={1.2} strokeDasharray="5,3" />
               <line x1={bx} y1={by2} x2={bx + BDOOR_WIDTH * SCALE} y2={by1}

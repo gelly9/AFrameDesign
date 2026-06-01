@@ -9,8 +9,9 @@ const SINK     = '#c7ccc9'
 const HOB      = '#2b2b2b'
 const FONT     = "'Helvetica Neue',Arial,sans-serif"
 
-// Keep the run clear of the wall faces (half the wall stroke ≈ 0.06m).
-const WALL_INSET = 0.06
+// Walls are now built outward from the interior line, so the run sits
+// flush against the interior wall face (no inset needed).
+const WALL_INSET = 0
 
 // ── Compute each unit's footprint in plan meters ──────────────────
 // Vertical run along a side wall, anchored at the bottom, running up.

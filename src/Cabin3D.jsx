@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react'
 import * as THREE from 'three'
 import {
   W_TOP, H_LEFT, W_BOTTOM, H_RIGHT, STEP_Y,
-  WALL_HEIGHT,
+  WALL_HEIGHT, WALL_THICK,
   ROOM_POLYGON, WALL_SEGMENTS,
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
 } from './cabinData.js'
 import Kitchen3D from './Kitchen3D'
+import { kitchenUnitRects } from './Kitchen.jsx'
 
 // ── Coordinate convention ─────────────────────────────────────────
 // Plan coords are (x, y) with y increasing downward (south).
@@ -94,7 +95,7 @@ function Floor({ onPick }) {
   )
 }
 
-const THICK = 0.12
+const THICK = WALL_THICK   // 0.20m, built outward from the interior line
 
 // ── A single door/window, optionally glass with mullions + transom ──
 function Opening({ op, w, cx, cy }) {
@@ -169,7 +170,7 @@ function Opening({ op, w, cx, cy }) {
 }
 
 // ── One vertical wall, with openings projected onto it ────────────
-function Wall({ from, to, height, openings }) {
+function Wall({ from, to, height, openings, out = [0, 0] }) {
   const A = from, B = to
   const dx = B[0] - A[0]
   const dy = B[1] - A[1]
@@ -180,7 +181,12 @@ function Wall({ from, to, height, openings }) {
   // Wall world direction is (dx, 0, dy)/L  ⇒  θ = atan2(-dy, dx).
   const angle = Math.atan2(-dy, dx)
 
-  const [mwx, mwz] = toWorld([(A[0] + B[0]) / 2, (A[1] + B[1]) / 2])
+  // Offset the wall OUTWARD by half its thickness so its inner face
+  // sits exactly on the interior dimension line. Extend the length by
+  // THICK so neighbours overlap and corners close cleanly.
+  const midX = (A[0] + B[0]) / 2 + out[0] * (THICK / 2)
+  const midY = (A[1] + B[1]) / 2 + out[1] * (THICK / 2)
+  const [mwx, mwz] = toWorld([midX, midY])
 
   // Unit vector along the wall in plan space, for projecting openings.
   const ux = dx / L, uy = dy / L
@@ -188,7 +194,7 @@ function Wall({ from, to, height, openings }) {
   return (
     <group position={[mwx, height / 2, mwz]} rotation={[0, angle, 0]}>
       <mesh castShadow receiveShadow>
-        <boxGeometry args={[L, height, THICK]} />
+        <boxGeometry args={[L + THICK, height, THICK]} />
         <meshStandardMaterial color="#efe7d4" roughness={0.85} side={THREE.DoubleSide}
                               transparent opacity={0.4} depthWrite={false} />
       </mesh>
@@ -321,6 +327,35 @@ function Dimensions() {
   return DIMS.map((d, i) => <Dim key={i} {...d} />)
 }
 
+// Clear distance between the kitchen counter front and stud S1
+function KitchenStudGap() {
+  const s1 = STUDS.find(s => s.id === 'S1')
+  if (!s1) return null
+  const rects = kitchenUnitRects()
+  const cabinetFrontX = Math.min(...rects.map(r => r.x1m))  // room-facing edge
+  const studX = s1.cx                                       // stud centerline (matches 2D dim)
+  const z = s1.cy
+  const y = 0.06
+  const a = [studX, y, z]
+  const b = [cabinetFrontX, y, z]
+  const mid = [(studX + cabinetFrontX) / 2, y + 0.01, z]
+  const dist = cabinetFrontX - studX
+  const tick = 0.10
+  const col = '#4ec9b0'
+  return (
+    <group>
+      <Line points={[a, b]} color={col} lineWidth={2} />
+      <Line points={[[a[0], y, z - tick], [a[0], y, z + tick]]} color={col} lineWidth={2} />
+      <Line points={[[b[0], y, z - tick], [b[0], y, z + tick]]} color={col} lineWidth={2} />
+      <Text position={mid} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.24}
+            color="#7fe9d6" anchorX="center" anchorY="middle"
+            outlineWidth={0.012} outlineColor="#1a1f2a">
+        {dist.toFixed(2)} m
+      </Text>
+    </group>
+  )
+}
+
 export default function Cabin3D() {
   const [showDims, setShowDims] = useState(true)
   const [personAt, setPersonAt] = useState([1.6, 6.3])
@@ -348,11 +383,13 @@ export default function Cabin3D() {
           <Floor onPick={handlePick} />
           {WALL_SEGMENTS.map(seg => (
             <Wall key={seg.id} from={seg.from} to={seg.to} height={WALL_HEIGHT}
+                  out={seg.out}
                   openings={OPENINGS.filter(o => o.wall === seg.id)} />
           ))}
           <Studs />
           <Staircase />
           <Kitchen3D />
+          <KitchenStudGap />
           <Person at={personAt} />
           {showDims && <Dimensions />}
         </group>

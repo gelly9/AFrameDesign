@@ -9,7 +9,9 @@
       "Bash(npm run *)",
       "Bash(curl -s http://localhost:5173)",
       "Bash(npx vite *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(node -e ' *)",
+      "Bash(grep -n \"THICK\\\\s*=\\\\|boxGeometry args={\\\\[L,\" /Users/gelli/A-Frame-Design/src/Cabin3D.jsx)"
     ]
   }
 }

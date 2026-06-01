@@ -25,16 +25,42 @@ export const ROOM_POLYGON = [
   [0,        H_LEFT ],
 ]
 
+// Wall thickness, and how the sketch dimensions are interpreted.
+// ROOM_POLYGON is the INTERIOR (clear) face — your sketch numbers are
+// the usable inside distances. Walls are built OUTWARD from this line.
+export const WALL_THICK = 0.20
+
+// Point-in-polygon (used to orient outward wall normals)
+function _pip(x, y, poly) {
+  let c = false
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i]
+    const [xj, yj] = poly[j]
+    if (((yi > y) !== (yj > y)) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c
+  }
+  return c
+}
+
 // ── Wall segments (used by the 3D view to build vertical walls) ──
 // The LEFT wall (8.20m) is intentionally omitted — it's the A-frame
 // slope meeting the floor, not a vertical wall.
+// Each segment gets a unit OUTWARD normal `out` (plan coords).
 export const WALL_SEGMENTS = [
   { id: 'top',         from: [0,        0      ], to: [W_TOP,    0      ] },
   { id: 'innerVert',   from: [W_TOP,    0      ], to: [W_TOP,    STEP_Y ] },
   { id: 'innerHoriz',  from: [W_TOP,    STEP_Y ], to: [W_BOTTOM, STEP_Y ] },
   { id: 'right',       from: [W_BOTTOM, STEP_Y ], to: [W_BOTTOM, H_LEFT ] },
   { id: 'bottom',      from: [W_BOTTOM, H_LEFT ], to: [0,        H_LEFT ] },
-]
+].map(seg => {
+  const [ax, ay] = seg.from
+  const [bx, by] = seg.to
+  const dx = bx - ax, dy = by - ay
+  const len = Math.hypot(dx, dy)
+  let nx = -dy / len, ny = dx / len            // one normal
+  const mx = (ax + bx) / 2, my = (ay + by) / 2
+  if (_pip(mx + nx * 0.02, my + ny * 0.02, ROOM_POLYGON)) { nx = -nx; ny = -ny }
+  return { ...seg, out: [nx, ny] }
+})
 
 // ── Entrance (bottom wall) ────────────────────────────────────────
 export const ENTRANCE = {
