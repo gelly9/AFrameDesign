@@ -15,6 +15,12 @@ const ENT_WIDTH = 3.80
 // Terrace door (right wall, from the top)
 const TDOOR_WIDTH = 1.05
 
+// Bathroom door (inner 3.40m wall): 0.80m wide, 0.80m above bottom of that wall
+const BDOOR_WIDTH    = 0.80
+const BDOOR_FROM_BOT = 0.80
+const BDOOR_Y2       = STEP_Y - BDOOR_FROM_BOT          // 2.60m (bottom of door)
+const BDOOR_Y1       = BDOOR_Y2 - BDOOR_WIDTH           // 1.80m (top of door)
+
 // Window on right wall: 1.30m from bottom, 1.20m tall
 const WIN_HEIGHT   = 1.20
 const WIN_FROM_BOT = 1.30
@@ -327,6 +333,25 @@ export default function FloorPlan() {
           )
         })()}
 
+        {/* Bathroom door — inner 3.40m wall (opens into the left/living side) */}
+        {(() => {
+          const bx  = px(W_TOP)
+          const by1 = py(BDOOR_Y1)
+          const by2 = py(BDOOR_Y2)
+          return (
+            <g>
+              <line x1={bx} y1={by1} x2={bx} y2={by2} stroke="#fff" strokeWidth={13} />
+              <line x1={bx - 6} y1={by1} x2={bx + 6} y2={by1} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              <line x1={bx - 6} y1={by2} x2={bx + 6} y2={by2} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              {/* Swing arc opens to the right (into the bathroom) */}
+              <path d={`M ${bx} ${by2} A ${BDOOR_WIDTH * SCALE} ${BDOOR_WIDTH * SCALE} 0 0 0 ${bx + BDOOR_WIDTH * SCALE} ${by1}`}
+                    fill="rgba(58,124,165,0.06)" stroke={C.opening} strokeWidth={1.2} strokeDasharray="5,3" />
+              <line x1={bx} y1={by2} x2={bx + BDOOR_WIDTH * SCALE} y2={by1}
+                    stroke={C.opening} strokeWidth={1.2} />
+            </g>
+          )
+        })()}
+
         {/* Studs */}
         {STUDS.map(s => <Stud key={s.id} stud={s} />)}
         {STUDS.map(s => <StudDims key={s.id} stud={s} />)}
@@ -347,6 +372,10 @@ export default function FloorPlan() {
         <HDim x1m={0} x2m={ENT_LEFT}                  ym={H_LEFT} label="1.30 m" above={false} gap={62} color={C.opening} />
         <HDim x1m={ENT_LEFT} x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} gap={62} color={C.opening} />
         <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM} ym={H_LEFT} label="1.40 m" above={false} gap={62} color={C.opening} />
+        {/* Bathroom door dims */}
+        <VDim xm={W_TOP} y1m={BDOOR_Y1} y2m={BDOOR_Y2} label="0.80 m" side="right" gap={92} color={C.opening} />
+        <VDim xm={W_TOP} y1m={BDOOR_Y2} y2m={STEP_Y}   label="0.80 m" side="right" gap={92} color={C.opening} />
+
         {/* Right wall: door + gap + window + bottom */}
         <VDim xm={W_BOTTOM} y1m={STEP_Y}              y2m={STEP_Y + TDOOR_WIDTH}                  label="1.05 m" side="right" gap={62} color={C.opening} />
         <VDim xm={W_BOTTOM} y1m={STEP_Y + TDOOR_WIDTH} y2m={STEP_Y + WIN_FROM_TOP}                label="1.25 m" side="right" gap={62} color={C.opening} />
