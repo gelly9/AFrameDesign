@@ -346,10 +346,10 @@ export default function FloorPlan() {
               <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1}
                     fill="rgba(154,140,116,0.12)" stroke="#7a6a52" strokeWidth={1.5} />
               {treads}
-              {/* Arrow along centerline (ascends toward the right) */}
-              <line x1={x1 + 10} y1={cyMid} x2={x2 - 10} y2={cyMid}
+              {/* Arrow along centerline (ascends toward the left) */}
+              <line x1={x2 - 10} y1={cyMid} x2={x1 + 10} y2={cyMid}
                     stroke="#7a6a52" strokeWidth={1.5} markerEnd="url(#arrow-g)" />
-              <text x={x1 + 14} y={cyMid - 7} textAnchor="start"
+              <text x={x2 - 14} y={cyMid - 7} textAnchor="end"
                     fontSize={11} fontWeight={700} fill="#7a6a52" letterSpacing={1}
                     fontFamily="'Helvetica Neue',Arial,sans-serif">UP</text>
             </g>

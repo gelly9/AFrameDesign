@@ -88,15 +88,15 @@ export const STUDS = [
 ]
 
 // ── Staircase ─────────────────────────────────────────────────────
-// 1.00m wide × 2.50m run, running horizontally and ascending to the
-// RIGHT (toward the terrace). Sits against the inner step wall
-// (top edge at y = STEP_Y); right edge is 1m from the right wall.
+// 1.00m wide × 2.50m run, running horizontally. Starts low at the
+// terrace door (right end) and ascends to the LEFT. Sits against the
+// inner step wall (top edge at y = STEP_Y); right edge 1m from right wall.
 export const STAIR = {
   width: 1.00,                       // extent across travel (y)
   run:   2.50,                       // extent along travel (x)
   gapFromRightWall: 1.00,            // right edge offset left of W_BOTTOM
   treadDepth: 0.25,                  // tread spacing
-  ascend: 'right',                   // arrow points right (toward terrace)
+  ascend: 'left',                    // rises toward the left (door is on the right)
 }
 // Derived footprint (plan coords)
 export const STAIR_X2 = W_BOTTOM - STAIR.gapFromRightWall               // 5.60 (right)

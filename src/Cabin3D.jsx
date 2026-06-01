@@ -8,6 +8,7 @@ import {
   ROOM_POLYGON, WALL_SEGMENTS,
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS, FLOOR_AREA,
+  STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
 } from './cabinData.js'
 
 // ── Coordinate convention ─────────────────────────────────────────
@@ -21,12 +22,13 @@ const toWorld = ([x, y]) => [x, y]
 // These are computed the exact same way the 2D floor plan computes them,
 // so the two views can never drift apart.
 const OPENINGS = [
-  // Entrance — bottom wall
+  // Entrance — bottom wall: A-frame glass facade, 4 panels + transom row
   {
     wall: 'bottom', kind: 'door',
     p: [ENTRANCE.fromLeft, H_LEFT],
     q: [ENTRANCE.fromLeft + ENTRANCE.width, H_LEFT],
     sill: 0, h: ENTRANCE.height,
+    glass: true, cols: 4, transom: 0.18,
   },
   // Terrace door — right wall, starts at top of right wall (STEP_Y)
   {
@@ -58,8 +60,21 @@ const OPENINGS = [
   },
 ]
 
+// Point-in-polygon test (plan coords) for constraining placement
+function insideRoom(x, y) {
+  let inside = false
+  for (let i = 0, j = ROOM_POLYGON.length - 1; i < ROOM_POLYGON.length; j = i++) {
+    const [xi, yi] = ROOM_POLYGON[i]
+    const [xj, yj] = ROOM_POLYGON[j]
+    const hit = (yi > y) !== (yj > y) &&
+      x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+    if (hit) inside = !inside
+  }
+  return inside
+}
+
 // ── Extruded L-shape floor ────────────────────────────────────────
-function Floor() {
+function Floor({ onPick }) {
   const geom = useMemo(() => {
     const s = new THREE.Shape()
     ROOM_POLYGON.forEach(([x, y], i) => {
@@ -71,13 +86,86 @@ function Floor() {
   }, [])
   // +PI/2 about X maps shape (x, y_plan) → world (x, 0, +y_plan).
   return (
-    <mesh geometry={geom} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+    <mesh geometry={geom} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow
+          onClick={(e) => { e.stopPropagation(); onPick && onPick(e.point) }}>
       <meshStandardMaterial color="#d6c8a8" roughness={0.9} side={THREE.DoubleSide} />
     </mesh>
   )
 }
 
 const THICK = 0.12
+
+// ── A single door/window, optionally glass with mullions + transom ──
+function Opening({ op, w, cx, cy }) {
+  const h = op.h
+  const isGlass = op.glass || op.kind === 'window'
+  const cols = op.cols || (op.panes ? op.panes[0] : 1)
+  const rows = op.panes ? op.panes[1] : 1
+  const barT  = 0.06               // mullion thickness
+  const depth = THICK + 0.05
+  const frameColor = '#241a10'
+
+  const bars = []
+  const top = cy + h / 2
+
+  // outer frame ring
+  bars.push(
+    <mesh key="ft" position={[cx, top - barT / 2, 0]}><boxGeometry args={[w, barT, depth + 0.01]} /><meshStandardMaterial color={frameColor} roughness={0.6} /></mesh>,
+    <mesh key="fb" position={[cx, cy - h / 2 + barT / 2, 0]}><boxGeometry args={[w, barT, depth + 0.01]} /><meshStandardMaterial color={frameColor} roughness={0.6} /></mesh>,
+    <mesh key="fl" position={[cx - w / 2 + barT / 2, cy, 0]}><boxGeometry args={[barT, h, depth + 0.01]} /><meshStandardMaterial color={frameColor} roughness={0.6} /></mesh>,
+    <mesh key="fr" position={[cx + w / 2 - barT / 2, cy, 0]}><boxGeometry args={[barT, h, depth + 0.01]} /><meshStandardMaterial color={frameColor} roughness={0.6} /></mesh>,
+  )
+
+  // vertical mullions between columns
+  for (let j = 1; j < cols; j++) {
+    const lx = cx - w / 2 + (j * w) / cols
+    bars.push(
+      <mesh key={`v${j}`} position={[lx, cy, 0]}>
+        <boxGeometry args={[barT, h, depth + 0.01]} />
+        <meshStandardMaterial color={frameColor} roughness={0.6} />
+      </mesh>
+    )
+  }
+
+  // transom: a single horizontal bar near the top
+  if (op.transom) {
+    const ly = top - op.transom * h
+    bars.push(
+      <mesh key="transom" position={[cx, ly, 0]}>
+        <boxGeometry args={[w, barT, depth + 0.01]} />
+        <meshStandardMaterial color={frameColor} roughness={0.6} />
+      </mesh>
+    )
+  }
+
+  // even horizontal mullions (when panes specify rows)
+  for (let k = 1; k < rows; k++) {
+    const ly = cy - h / 2 + (k * h) / rows
+    bars.push(
+      <mesh key={`h${k}`} position={[cx, ly, 0]}>
+        <boxGeometry args={[w, barT, depth + 0.01]} />
+        <meshStandardMaterial color={frameColor} roughness={0.6} />
+      </mesh>
+    )
+  }
+
+  return (
+    <group>
+      <mesh position={[cx, cy, 0]}>
+        <boxGeometry args={[w, h, depth]} />
+        <meshStandardMaterial
+          color={isGlass ? '#2e3a44' : '#4a3925'}
+          metalness={isGlass ? 0.5 : 0}
+          roughness={isGlass ? 0.08 : 0.7}
+          transparent={isGlass}
+          opacity={isGlass ? 0.45 : 1}
+          depthWrite={!isGlass}
+        />
+      </mesh>
+      {bars}
+    </group>
+  )
+}
 
 // ── One vertical wall, with openings projected onto it ────────────
 function Wall({ from, to, height, openings }) {
@@ -100,7 +188,8 @@ function Wall({ from, to, height, openings }) {
     <group position={[mwx, height / 2, mwz]} rotation={[0, angle, 0]}>
       <mesh castShadow receiveShadow>
         <boxGeometry args={[L, height, THICK]} />
-        <meshStandardMaterial color="#efe7d4" roughness={0.85} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#efe7d4" roughness={0.85} side={THREE.DoubleSide}
+                              transparent opacity={0.4} depthWrite={false} />
       </mesh>
       {openings.map((op, i) => {
         const cx = (op.p[0] + op.q[0]) / 2
@@ -110,19 +199,67 @@ function Wall({ from, to, height, openings }) {
         const w = Math.hypot(op.q[0] - op.p[0], op.q[1] - op.p[1])
         const localX = d - L / 2
         const localY = op.sill + op.h / 2 - height / 2
-        return (
-          <mesh key={i} position={[localX, localY, 0]}>
-            <boxGeometry args={[w, op.h, THICK + 0.04]} />
-            <meshStandardMaterial
-              color={op.kind === 'door' ? '#4a3925' : '#9ad0e8'}
-              metalness={op.kind === 'window' ? 0.3 : 0}
-              roughness={op.kind === 'window' ? 0.2 : 0.7}
-              transparent={op.kind === 'window'}
-              opacity={op.kind === 'window' ? 0.55 : 1}
-            />
-          </mesh>
-        )
+        return <Opening key={i} op={op} w={w} cx={localX} cy={localY} />
       })}
+    </group>
+  )
+}
+
+// ── Staircase: starts low at the right (door) and rises toward the left ──
+function Staircase() {
+  const nSteps = Math.round(STAIR.run / STAIR.treadDepth)
+  const rise   = WALL_HEIGHT / nSteps
+  const zMid   = (STAIR_Y1 + STAIR_Y2) / 2
+  const steps  = []
+  for (let i = 0; i < nSteps; i++) {
+    // i = 0 is the leftmost (tallest) step, i = nSteps-1 is at the door (lowest)
+    const h = (nSteps - i) * rise
+    const xCenter = STAIR_X1 + (i + 0.5) * STAIR.treadDepth
+    steps.push(
+      <mesh key={i} position={[xCenter, h / 2, zMid]} castShadow receiveShadow>
+        <boxGeometry args={[STAIR.treadDepth, h, STAIR.width]} />
+        <meshStandardMaterial color="#9a7b52" roughness={0.85} />
+      </mesh>
+    )
+  }
+  return <group>{steps}</group>
+}
+
+// ── 1.80m human figure for scale ──────────────────────────────────
+function Person({ at }) {
+  const [wx, wz] = toWorld(at)
+  const skin = '#caa07a'
+  const cloth = '#3f5d73'
+  return (
+    <group position={[wx, 0, wz]}>
+      {/* legs */}
+      <mesh position={[-0.10, 0.45, 0]} castShadow>
+        <capsuleGeometry args={[0.08, 0.74, 4, 8]} />
+        <meshStandardMaterial color={cloth} roughness={0.8} />
+      </mesh>
+      <mesh position={[0.10, 0.45, 0]} castShadow>
+        <capsuleGeometry args={[0.08, 0.74, 4, 8]} />
+        <meshStandardMaterial color={cloth} roughness={0.8} />
+      </mesh>
+      {/* torso */}
+      <mesh position={[0, 1.18, 0]} castShadow>
+        <capsuleGeometry args={[0.16, 0.42, 4, 8]} />
+        <meshStandardMaterial color={cloth} roughness={0.8} />
+      </mesh>
+      {/* arms */}
+      <mesh position={[-0.22, 1.18, 0]} rotation={[0, 0, 0.12]} castShadow>
+        <capsuleGeometry args={[0.05, 0.52, 4, 8]} />
+        <meshStandardMaterial color={cloth} roughness={0.8} />
+      </mesh>
+      <mesh position={[0.22, 1.18, 0]} rotation={[0, 0, -0.12]} castShadow>
+        <capsuleGeometry args={[0.05, 0.52, 4, 8]} />
+        <meshStandardMaterial color={cloth} roughness={0.8} />
+      </mesh>
+      {/* head */}
+      <mesh position={[0, 1.66, 0]} castShadow>
+        <sphereGeometry args={[0.13, 16, 16]} />
+        <meshStandardMaterial color={skin} roughness={0.7} />
+      </mesh>
     </group>
   )
 }
@@ -185,8 +322,17 @@ function Dimensions() {
 
 export default function Cabin3D() {
   const [showDims, setShowDims] = useState(true)
+  const [personAt, setPersonAt] = useState([1.6, 6.3])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
+
+  // World intersection point → plan coords (undo the centering group offset).
+  // group is at [-cx, 0, -cy]; inside it world = offset + (planX, 0, planY).
+  const handlePick = (point) => {
+    const planX = point.x + cx
+    const planY = point.z + cy
+    if (insideRoom(planX, planY)) setPersonAt([planX, planY])
+  }
 
   return (
     <div style={{ width: '100%', height: '85vh', background: '#1a1f2a', borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
@@ -198,12 +344,14 @@ export default function Cabin3D() {
 
         {/* Center the model on the world origin */}
         <group position={[-cx, 0, -cy]}>
-          <Floor />
+          <Floor onPick={handlePick} />
           {WALL_SEGMENTS.map(seg => (
             <Wall key={seg.id} from={seg.from} to={seg.to} height={WALL_HEIGHT}
                   openings={OPENINGS.filter(o => o.wall === seg.id)} />
           ))}
           <Studs />
+          <Staircase />
+          <Person at={personAt} />
           {showDims && <Dimensions />}
         </group>
 
@@ -231,7 +379,7 @@ export default function Cabin3D() {
         background: 'rgba(0,0,0,0.4)', padding: '6px 10px', borderRadius: 6,
         backdropFilter: 'blur(8px)',
       }}>
-        Drag to orbit · Scroll to zoom · Right-drag to pan  ·  Area ≈ {FLOOR_AREA.toFixed(1)} m²
+        Drag to orbit · Scroll to zoom · Click the floor to move the figure  ·  Area ≈ {FLOOR_AREA.toFixed(1)} m²
       </div>
     </div>
   )
