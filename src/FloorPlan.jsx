@@ -1,164 +1,201 @@
-const SCALE = 80
+// All measurements in meters, converted to px via SCALE
+const SCALE = 90
 
-// Outer wall dimensions — ground truth
+// Outer wall dimensions
 const W_TOP    = 3.30
 const H_LEFT   = 8.20
 const W_BOTTOM = 6.60
-const H_RIGHT  = 3.75
+const H_RIGHT  = 4.80
+const STEP_Y   = H_LEFT - H_RIGHT   // 4.45m
+const STEP_W   = W_BOTTOM - W_TOP   // 3.30m
 
-// Derived inner step (ensures flat bottom & right angle corners)
-const STEP_Y = H_LEFT - H_RIGHT          // 4.45m from top
-const STEP_W = W_BOTTOM - W_TOP          // 3.30m wide
-
-// Entrance on bottom wall
+// Entrance
 const ENT_LEFT  = 1.30
 const ENT_WIDTH = 3.80
 
-// Window on right wall (3.75m total: 1.25 + 1.20 + 1.30 = 3.75 ✓)
-const WIN_FROM_TOP = 1.25   // from top of right wall (STEP_Y)
-const WIN_HEIGHT   = 1.20   // window opening
-const WIN_FROM_BOT = 1.30   // to bottom of right wall
+// Window on right wall: 1.30m from bottom, 1.20m tall
+const WIN_HEIGHT   = 1.20
+const WIN_FROM_BOT = 1.30
+const WIN_FROM_TOP = H_RIGHT - WIN_FROM_BOT - WIN_HEIGHT  // derived: 4.80 - 1.30 - 1.20 = 2.30m
 
-const PAD = 70
-const OX  = PAD + 40   // extra left room for left-side dimension
-const OY  = PAD
+// Canvas layout
+const MARGIN_L = 90
+const MARGIN_T = 90   // room for title + top dim
+const MARGIN_R = 180  // room for right wall + window dims + 3.75m
+const MARGIN_B = 140  // room for entrance dims + legend
 
-const svgW = OX + W_BOTTOM * SCALE + PAD + 60
-const svgH = OY + H_LEFT  * SCALE + PAD + 50
+const roomW = W_BOTTOM * SCALE
+const roomH = H_LEFT   * SCALE
+const svgW  = MARGIN_L + roomW + MARGIN_R
+const svgH  = MARGIN_T + roomH + MARGIN_B
 
-// L-shape polygon
-const pts = [
-  [0,        0       ],
-  [W_TOP,    0       ],
-  [W_TOP,    STEP_Y  ],
-  [W_BOTTOM, STEP_Y  ],
-  [W_BOTTOM, H_LEFT  ],
-  [0,        H_LEFT  ],
-]
-const pointsStr = pts.map(([x, y]) => `${OX + x * SCALE},${OY + y * SCALE}`).join(' ')
+// Room origin
+const OX = MARGIN_L
+const OY = MARGIN_T
 
-// Entrance SVG coords
-const ex1 = OX + ENT_LEFT * SCALE
-const ex2 = OX + (ENT_LEFT + ENT_WIDTH) * SCALE
-const ey  = OY + H_LEFT * SCALE
+// Helper: meter → px (x)
+const px = m => OX + m * SCALE
+const py = m => OY + m * SCALE
 
-function HDim({ x1m, x2m, ym, label, above = true, offset = 28 }) {
-  const sign = above ? -1 : 1
-  const yLine = OY + ym * SCALE + sign * offset
-  const x1s   = OX + x1m * SCALE
-  const x2s   = OX + x2m * SCALE
+// L-shape polygon string
+const roomPoints = [
+  [0,        0      ],
+  [W_TOP,    0      ],
+  [W_TOP,    STEP_Y ],
+  [W_BOTTOM, STEP_Y ],
+  [W_BOTTOM, H_LEFT ],
+  [0,        H_LEFT ],
+].map(([x, y]) => `${px(x)},${py(y)}`).join(' ')
+
+// Grid lines (1m spacing)
+function Grid() {
+  const lines = []
+  for (let x = 1; x < W_BOTTOM; x++) {
+    lines.push(<line key={`gx${x}`} x1={px(x)} y1={py(0)} x2={px(x)} y2={py(H_LEFT)} />)
+  }
+  for (let y = 1; y < H_LEFT; y++) {
+    lines.push(<line key={`gy${y}`} x1={px(0)} y1={py(y)} x2={px(W_BOTTOM)} y2={py(y)} />)
+  }
   return (
-    <g>
-      <line x1={x1s} y1={yLine} x2={x2s} y2={yLine}
-            stroke="#999" strokeWidth={1}
-            markerStart="url(#arr)" markerEnd="url(#arr)" />
-      <line x1={x1s} y1={OY + ym * SCALE} x2={x1s} y2={yLine}
-            stroke="#ccc" strokeWidth={1} strokeDasharray="3,2" />
-      <line x1={x2s} y1={OY + ym * SCALE} x2={x2s} y2={yLine}
-            stroke="#ccc" strokeWidth={1} strokeDasharray="3,2" />
-      <text x={(x1s + x2s) / 2} y={yLine + sign * 13}
-            textAnchor="middle" fontSize={11} fill="#666">{label}</text>
+    <g clipPath="url(#roomClip)" stroke="#c8bfa9" strokeWidth={0.6} opacity={0.7}>
+      {lines}
     </g>
   )
 }
 
-function VDim({ xm, y1m, y2m, label, side = 'left', offset = 40 }) {
-  const sign = side === 'left' ? -1 : 1
-  const xLine = OX + xm * SCALE
-  const y1s   = OY + y1m * SCALE
-  const y2s   = OY + y2m * SCALE
-  const xL    = xLine + sign * offset
+// Dimension: horizontal
+function HDim({ x1m, x2m, ym, label, above = true, gap = 32 }) {
+  const sign  = above ? -1 : 1
+  const yPx   = py(ym) + sign * gap
+  const x1Px  = px(x1m)
+  const x2Px  = px(x2m)
+  const midX  = (x1Px + x2Px) / 2
   return (
-    <g>
-      <line x1={xL} y1={y1s} x2={xL} y2={y2s}
-            stroke="#999" strokeWidth={1}
-            markerStart="url(#arr)" markerEnd="url(#arr)" />
-      <line x1={xLine} y1={y1s} x2={xL} y2={y1s}
-            stroke="#ccc" strokeWidth={1} strokeDasharray="3,2" />
-      <line x1={xLine} y1={y2s} x2={xL} y2={y2s}
-            stroke="#ccc" strokeWidth={1} strokeDasharray="3,2" />
-      <text x={xL + sign * 4} y={(y1s + y2s) / 2}
-            textAnchor={side === 'left' ? 'end' : 'start'}
-            dominantBaseline="middle" fontSize={11} fill="#666">{label}</text>
+    <g stroke="#6b7280" strokeWidth={1.1} fill="#374151" fontSize={13}>
+      <line x1={x1Px} y1={py(ym)} x2={x1Px} y2={yPx} stroke="#9ca3af" strokeWidth={0.8} />
+      <line x1={x2Px} y1={py(ym)} x2={x2Px} y2={yPx} stroke="#9ca3af" strokeWidth={0.8} />
+      <line x1={x1Px} y1={yPx} x2={x2Px} y2={yPx}
+            markerStart="url(#arrowEnd)" markerEnd="url(#arrow)" />
+      <rect x={midX - 22} y={yPx + (above ? -18 : 2)} width={44} height={16} fill="#fff" />
+      <text x={midX} y={yPx + (above ? -5 : 14)} textAnchor="middle">{label}</text>
+    </g>
+  )
+}
+
+// Dimension: vertical
+function VDim({ xm, y1m, y2m, label, side = 'right', gap = 40 }) {
+  const sign  = side === 'right' ? 1 : -1
+  const xPx   = px(xm) + sign * gap
+  const y1Px  = py(y1m)
+  const y2Px  = py(y2m)
+  const midY  = (y1Px + y2Px) / 2
+  return (
+    <g stroke="#6b7280" strokeWidth={1.1} fill="#374151" fontSize={13}>
+      <line x1={px(xm)} y1={y1Px} x2={xPx} y2={y1Px} stroke="#9ca3af" strokeWidth={0.8} />
+      <line x1={px(xm)} y1={y2Px} x2={xPx} y2={y2Px} stroke="#9ca3af" strokeWidth={0.8} />
+      <line x1={xPx} y1={y1Px} x2={xPx} y2={y2Px}
+            markerStart="url(#arrowEnd)" markerEnd="url(#arrow)" />
+      <rect x={xPx + (side === 'right' ? 4 : -44)} y={midY - 8} width={40} height={16} fill="#fff" />
+      <text
+        x={xPx + (side === 'right' ? 24 : -24)} y={midY + 5}
+        textAnchor="middle"
+      >{label}</text>
     </g>
   )
 }
 
 export default function FloorPlan() {
-  const area = (W_TOP * H_LEFT + STEP_W * H_RIGHT).toFixed(1)
+  // Entrance SVG coords (bottom wall)
+  const ex1 = px(ENT_LEFT)
+  const ex2 = px(ENT_LEFT + ENT_WIDTH)
+  const ey  = py(H_LEFT)
+
+  // Window SVG coords (right wall)
+  const wy1 = py(STEP_Y + WIN_FROM_TOP)
+  const wy2 = py(STEP_Y + WIN_FROM_TOP + WIN_HEIGHT)
+  const wx  = px(W_BOTTOM)
+
   return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'2rem', gap:'1rem' }}>
-      <h2 style={{ fontFamily:'system-ui', color:'#2d2d2d', fontWeight:500, letterSpacing:'-0.3px' }}>
-        Ground Floor
-      </h2>
-      <svg width={svgW} height={svgH}
-           style={{ background:'#faf9f7', borderRadius:8, boxShadow:'0 2px 12px rgba(0,0,0,0.07)' }}>
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'2rem', background:'#f8f6f2', minHeight:'100vh' }}>
+      <svg
+        width={svgW} height={svgH}
+        viewBox={`0 0 ${svgW} ${svgH}`}
+        fontFamily="'Helvetica Neue', Arial, sans-serif"
+        style={{ background:'#fff', borderRadius:10, boxShadow:'0 4px 24px rgba(0,0,0,0.10)' }}
+      >
         <defs>
-          <marker id="arr" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">
-            <polygon points="0,0 5,2.5 0,5" fill="#999" />
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L6,3 L0,6" fill="none" stroke="#6b7280" strokeWidth={1.1} />
           </marker>
+          <marker id="arrowEnd" markerWidth="10" markerHeight="10" refX="1" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M6,0 L0,3 L6,6" fill="none" stroke="#6b7280" strokeWidth={1.1} />
+          </marker>
+          <clipPath id="roomClip">
+            <polygon points={roomPoints} />
+          </clipPath>
         </defs>
 
+        {/* Title */}
+        <text x={OX} y={MARGIN_T - 50} fontSize={17} fontWeight={600} fill="#1f2937">
+          Ground Floor — Kitchen &amp; Living Room
+        </text>
+
         {/* Floor fill */}
-        <polygon points={pointsStr} fill="#ede8df" stroke="#6b5744" strokeWidth={2.5} strokeLinejoin="round" />
+        <polygon points={roomPoints} fill="#f4efe6" />
+
+        {/* Grid */}
+        <Grid />
+
+        {/* Walls — thick, drawn on top */}
+        <polygon
+          points={roomPoints}
+          fill="none"
+          stroke="#2b2b2b"
+          strokeWidth={9}
+          strokeLinejoin="miter"
+        />
+
+        {/* Entrance gap */}
+        <line x1={ex1} y1={ey} x2={ex2} y2={ey} stroke="#fff" strokeWidth={11} />
+
 
         {/* Window on right wall */}
-        {(() => {
-          const wx   = OX + W_BOTTOM * SCALE
-          const wy1  = OY + (STEP_Y + WIN_FROM_TOP) * SCALE
-          const wy2  = OY + (STEP_Y + WIN_FROM_TOP + WIN_HEIGHT) * SCALE
-          const wThk = 6   // wall thickness visual
-          return (
-            <g>
-              {/* erase wall line at window */}
-              <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#faf9f7" strokeWidth={5} />
-              {/* window symbol: outer lines + glass lines */}
-              <rect x={wx - wThk} y={wy1} width={wThk * 2} height={wy2 - wy1}
-                    fill="rgba(180,220,240,0.35)" stroke="#3a7ca5" strokeWidth={1} />
-              <line x1={wx - wThk} y1={(wy1 + wy2) / 2} x2={wx + wThk} y2={(wy1 + wy2) / 2}
-                    stroke="#3a7ca5" strokeWidth={0.8} />
-            </g>
-          )
-        })()}
+        <line x1={wx} y1={wy1} x2={wx} y2={wy2} stroke="#fff" strokeWidth={11} />
+        <rect x={wx - 7} y={wy1} width={14} height={wy2 - wy1}
+              fill="rgba(180,220,240,0.4)" stroke="#3a7ca5" strokeWidth={1.2} />
+        <line x1={wx - 7} y1={(wy1 + wy2) / 2} x2={wx + 7} y2={(wy1 + wy2) / 2}
+              stroke="#3a7ca5" strokeWidth={0.9} />
 
-        {/* Entrance gap in bottom wall */}
-        <line x1={ex1} y1={ey} x2={ex2} y2={ey} stroke="#faf9f7" strokeWidth={5} />
-
-        {/* Door swing arc (inward) */}
-        <path
-          d={`M ${ex1} ${ey} A ${ENT_WIDTH * SCALE / 2} ${ENT_WIDTH * SCALE / 2} 0 0 1 ${ex2} ${ey}`}
-          fill="rgba(58,124,165,0.08)" stroke="#3a7ca5" strokeWidth={1.5} strokeDasharray="6,3"
-        />
-        <line x1={ex1} y1={ey} x2={ex1} y2={ey - 14} stroke="#3a7ca5" strokeWidth={2} strokeLinecap="round" />
-        <line x1={ex2} y1={ey} x2={ex2} y2={ey - 14} stroke="#3a7ca5" strokeWidth={2} strokeLinecap="round" />
-
-        {/* === Outer wall dimensions === */}
+        {/* ── Dimensions ── */}
         {/* Top: 3.30m */}
-        <HDim x1m={0} x2m={W_TOP} ym={0} label="3.30 m" above />
+        <HDim x1m={0} x2m={W_TOP} ym={0} label="3.30 m" above gap={36} />
         {/* Left: 8.20m */}
-        <VDim xm={0} y1m={0} y2m={H_LEFT} label="8.20 m" side="left" />
-        {/* Right wall window sub-dimensions: 1.25 / 1.20 / 1.30 */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y}                          y2m={STEP_Y + WIN_FROM_TOP}                    label="1.25 m" side="right" offset={60} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP}           y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT}       label="1.20 m" side="right" offset={60} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                               label="1.30 m" side="right" offset={60} />
-        {/* Right: 3.75m total */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT} label="3.75 m" side="right" offset={110} />
-        {/* Bottom total: 6.60m */}
-        <HDim x1m={0} x2m={W_BOTTOM} ym={H_LEFT} label="6.60 m" above={false} offset={48} />
+        <VDim xm={0} y1m={0} y2m={H_LEFT} label="8.20 m" side="left" gap={50} />
 
-        {/* === Derived inner step dimensions === */}
-        {/* Inner vertical: 4.45m */}
-        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y} label={`${STEP_Y.toFixed(2)} m`} side="right" />
-        {/* Inner horizontal: 3.30m */}
-        <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label={`${STEP_W.toFixed(2)} m`} above={false} offset={22} />
+        {/* Inner step vertical: 3.40m (= 8.20 - 4.80) */}
+        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y} label="3.40 m" side="right" gap={36} />
+        {/* Inner step horizontal: 3.50m — clamped to wall */}
+        <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label="3.50 m" above={false} gap={28} />
 
-        {/* === Entrance dimensions === */}
-        <HDim x1m={0}                   x2m={ENT_LEFT}             ym={H_LEFT} label="1.30 m" above={false} offset={28} />
-        <HDim x1m={ENT_LEFT}            x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} offset={28} />
-        <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM}            ym={H_LEFT} label="1.40 m" above={false} offset={28} />
+        {/* Entrance sub-dims */}
+        <HDim x1m={0}                    x2m={ENT_LEFT}             ym={H_LEFT} label="1.30 m" above={false} gap={52} />
+        <HDim x1m={ENT_LEFT}             x2m={ENT_LEFT + ENT_WIDTH} ym={H_LEFT} label="3.80 m" above={false} gap={52} />
+        <HDim x1m={ENT_LEFT + ENT_WIDTH} x2m={W_BOTTOM}             ym={H_LEFT} label="1.40 m" above={false} gap={52} />
+        {/* Entrance total */}
+        <HDim x1m={0} x2m={W_BOTTOM} ym={H_LEFT} label="6.60 m" above={false} gap={100} />
 
+        {/* Right wall total */}
+        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT} label="4.80 m" side="right" gap={120} />
+
+        {/* Window dims: 1.20m opening, 1.30m from bottom */}
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP}              y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} label="1.20 m" side="right" gap={50} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                             label="1.30 m" side="right" gap={50} />
+
+        {/* Legend */}
+        <text x={OX} y={svgH - 16} fontSize={11.5} fill="#4b5563">
+          Total area ≈ {(W_TOP * H_LEFT + STEP_W * H_RIGHT).toFixed(1)} m²  ·  Entrance 3.80 m  ·  Window 1.20 m
+        </text>
       </svg>
-      <p style={{ fontSize:12, color:'#aaa', fontFamily:'system-ui' }}>Total area ≈ {area} m²</p>
     </div>
   )
 }
