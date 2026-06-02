@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import FloorPlan from './FloorPlan'
 import Cabin3D from './Cabin3D'
+import BayConcepts from './BayConcepts'
 
 const TABS = [
   { id: 'plan', label: 'Floor Plan' },
   { id: '3d',   label: '3D View'    },
+  { id: 'bay',  label: 'Bay Ideas'  },
 ]
 
 export default function App() {
@@ -39,7 +41,9 @@ export default function App() {
         ))}
       </nav>
       <div style={{ padding: view === '3d' ? '24px' : 0, position: 'relative' }}>
-        {view === 'plan' ? <FloorPlan /> : <Cabin3D />}
+        {view === 'plan' && <FloorPlan />}
+        {view === '3d'   && <Cabin3D />}
+        {view === 'bay'  && <BayConcepts />}
       </div>
     </div>
   )
