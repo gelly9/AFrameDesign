@@ -32,7 +32,7 @@ const OPENINGS = [
     sill: 0, h: ENTRANCE.height,
     glass: true, cols: 4, transom: 0.18,
   },
-  // Terrace door — right wall, starts at top of right wall (STEP_Y)
+  // Terrace door — right wall, 0.25m below the inner step wall (STEP_Y + fromTop)
   {
     wall: 'right', kind: 'door',
     p: [W_BOTTOM, STEP_Y + TERRACE_DOOR.fromTop],

@@ -70,11 +70,12 @@ export const ENTRANCE = {
   height:   2.10,
 }
 
-// ── Terrace door (right wall, starts from top of that wall) ───────
+// ── Terrace door (right wall) ─────────────────────────────────────
+// 0.25m below the inner step wall (STEP_Y), 0.80m wide.
 export const TERRACE_DOOR = {
   wall: 'right',
-  fromTop: 0,          // starts at top of right wall (STEP_Y)
-  width:   1.05,
+  fromTop: 0.25,       // gap below the inner step wall (STEP_Y)
+  width:   0.80,
   height:  2.10,
 }
 

@@ -17,6 +17,8 @@ const BAND   = WALL_THICK * SCALE      // visible wall thickness (px)
 const ENT_LEFT  = ENTRANCE.fromLeft
 const ENT_WIDTH = ENTRANCE.width
 const TDOOR_WIDTH = TERRACE_DOOR.width
+const TDOOR_TOP   = STEP_Y + TERRACE_DOOR.fromTop   // door starts this far below inner step wall
+const TDOOR_BOT   = TDOOR_TOP + TDOOR_WIDTH
 
 // Bathroom door derived plan positions
 const BDOOR_WIDTH = BATHROOM_DOOR.width
@@ -272,7 +274,7 @@ export default function FloorPlan() {
           <line x1={ex1} y1={ey} x2={ex2} y2={ey} />
           <line x1={px(WIN2_X1)} y1={py(0)} x2={px(WIN2_X2)} y2={py(0)} />
           <line x1={wx} y1={wy1} x2={wx} y2={wy2} />
-          <line x1={px(W_BOTTOM)} y1={py(STEP_Y)} x2={px(W_BOTTOM)} y2={py(STEP_Y + TDOOR_WIDTH)} />
+          <line x1={px(W_BOTTOM)} y1={py(TDOOR_TOP)} x2={px(W_BOTTOM)} y2={py(TDOOR_BOT)} />
           <line x1={px(W_TOP)} y1={py(BDOOR_Y1)} x2={px(W_TOP)} y2={py(BDOOR_Y2)} />
         </g>
 
@@ -308,8 +310,8 @@ export default function FloorPlan() {
 
         {/* Terrace door — right wall (band outward, +x; opens to terrace) */}
         {(() => {
-          const dy1 = py(STEP_Y)
-          const dy2 = py(STEP_Y + TDOOR_WIDTH)
+          const dy1 = py(TDOOR_TOP)
+          const dy2 = py(TDOOR_BOT)
           const dx  = px(W_BOTTOM)
           return (
             <g>
@@ -397,8 +399,9 @@ export default function FloorPlan() {
         <VDim xm={W_TOP} y1m={BDOOR_Y2} y2m={STEP_Y}   label="0.80 m" side="right" gap={92} color={C.opening} />
 
         {/* Right wall: door + gap + window + bottom */}
-        <VDim xm={W_BOTTOM} y1m={STEP_Y}              y2m={STEP_Y + TDOOR_WIDTH}                  label="1.05 m" side="right" gap={62} color={C.opening} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y + TDOOR_WIDTH} y2m={STEP_Y + WIN_FROM_TOP}                label="1.25 m" side="right" gap={62} color={C.opening} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y}     y2m={TDOOR_TOP} label={`${TERRACE_DOOR.fromTop.toFixed(2)} m`} side="right" gap={62} color={C.opening} />
+        <VDim xm={W_BOTTOM} y1m={TDOOR_TOP}  y2m={TDOOR_BOT} label={`${TDOOR_WIDTH.toFixed(2)} m`}         side="right" gap={62} color={C.opening} />
+        <VDim xm={W_BOTTOM} y1m={TDOOR_BOT}  y2m={STEP_Y + WIN_FROM_TOP} label={`${(STEP_Y + WIN_FROM_TOP - TDOOR_BOT).toFixed(2)} m`} side="right" gap={62} color={C.opening} />
         <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP} y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT}  label="1.20 m" side="right" gap={62} color={C.opening} />
         <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                  label="1.30 m" side="right" gap={62} color={C.opening} />
 
