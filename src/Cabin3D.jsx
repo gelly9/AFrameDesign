@@ -243,24 +243,53 @@ function Wall({ from, to, height, openings, out = [0, 0] }) {
   )
 }
 
-// ── Staircase: starts low at the right (door) and rises toward the left ──
+// ── Staircase: steel mono-stringer with floating oak treads ───────
+// Open underneath (usable space below). Starts low at the right (door)
+// and rises toward the left.
 function Staircase() {
-  const nSteps = Math.round(STAIR.run / STAIR.treadDepth)
-  const rise   = WALL_HEIGHT / nSteps
-  const zMid   = (STAIR_Y1 + STAIR_Y2) / 2
-  const steps  = []
+  const nSteps  = Math.round(STAIR.run / STAIR.treadDepth)
+  const rise    = WALL_HEIGHT / nSteps
+  const zMid    = (STAIR_Y1 + STAIR_Y2) / 2
+  const TREAD_T = 0.05
+  const OVERHANG = 0.05
+  const STEEL = '#34383d'
+  const OAK   = '#c9a26a'
+
+  // Central inclined steel spine: bottom-right (floor) → top-left (wall height)
+  const x1 = STAIR_X2, x2 = STAIR_X1
+  const len = Math.hypot(x2 - x1, WALL_HEIGHT)
+  const ang = Math.atan2(WALL_HEIGHT, x2 - x1)
+
+  const parts = []
   for (let i = 0; i < nSteps; i++) {
-    // i = 0 is the leftmost (tallest) step, i = nSteps-1 is at the door (lowest)
-    const h = (nSteps - i) * rise
-    const xCenter = STAIR_X1 + (i + 0.5) * STAIR.treadDepth
-    steps.push(
-      <mesh key={i} position={[xCenter, h / 2, zMid]} castShadow receiveShadow>
-        <boxGeometry args={[STAIR.treadDepth, h, STAIR.width]} />
-        <meshStandardMaterial color="#9a7b52" roughness={0.85} />
+    const h = (nSteps - i) * rise                       // tread top height
+    const xC = STAIR_X1 + (i + 0.5) * STAIR.treadDepth
+    // oak tread
+    parts.push(
+      <mesh key={`t${i}`} position={[xC, h - TREAD_T / 2, zMid]} castShadow receiveShadow>
+        <boxGeometry args={[STAIR.treadDepth + OVERHANG, TREAD_T, STAIR.width]} />
+        <meshStandardMaterial color={OAK} roughness={0.6} />
+      </mesh>
+    )
+    // steel bracket joining spine to tread
+    parts.push(
+      <mesh key={`b${i}`} position={[xC, h - TREAD_T - 0.1, zMid]} castShadow>
+        <boxGeometry args={[0.14, 0.20, 0.16]} />
+        <meshStandardMaterial color={STEEL} metalness={0.6} roughness={0.4} />
       </mesh>
     )
   }
-  return <group>{steps}</group>
+
+  return (
+    <group>
+      {/* steel spine */}
+      <mesh position={[(x1 + x2) / 2, WALL_HEIGHT / 2, zMid]} rotation={[0, 0, ang]} castShadow>
+        <boxGeometry args={[len, 0.20, 0.16]} />
+        <meshStandardMaterial color={STEEL} metalness={0.6} roughness={0.4} />
+      </mesh>
+      {parts}
+    </group>
+  )
 }
 
 // ── 1.80m human figure for scale ──────────────────────────────────
