@@ -153,7 +153,7 @@ export const KITCHEN_RUN = KITCHEN.units.reduce((s, u) => s + u.w, 0)  // 3.20m
 // ── Dining table ──────────────────────────────────────────────────
 // Square 4-top in the open zone between the stairs, kitchen and entrance.
 export const DINING = {
-  cx: 4.25, cy: 5.90,   // center (plan coords) — pulled toward stud S1
+  cx: 4.70, cy: 5.90,   // center (plan coords) — pulled toward stud S1
   w: 0.90, d: 0.90,     // table top size
   seats: 4,
   chair: 0.45,          // chair footprint (square)

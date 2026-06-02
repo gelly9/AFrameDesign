@@ -7,7 +7,7 @@ import {
   WALL_THICK, DINING, COUCH,
 } from './cabinData.js'
 import Kitchen from './Kitchen'
-import DiningTable from './DiningTable'
+import DiningTable, { CHAIR_TUCK } from './DiningTable'
 import Couch from './Couch'
 
 const SCALE = 95
@@ -365,8 +365,8 @@ export default function FloorPlan() {
         <DiningTable px={px} py={py} scale={SCALE} />
         {/* Dining dimensions: table 0.90×0.90, chair 0.45 */}
         {(() => {
-          const { cx, cy, w, d, chair, chairGap } = DINING
-          const southChairBot = cy + d / 2 + chairGap + chair  // bottom edge of south chair
+          const { cx, cy, w, d, chair } = DINING
+          const southChairBot = cy + d / 2 + CHAIR_TUCK  // tucked chairs protrude only slightly
           const wood = '#8c6741'
           return (
             <g>

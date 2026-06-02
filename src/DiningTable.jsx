@@ -6,11 +6,15 @@ const CHAIR    = '#c9a87c'
 const CHAIR_DK = '#9c7748'
 const FONT     = "'Helvetica Neue',Arial,sans-serif"
 
+// How far a tucked chair protrudes past the table edge.
+export const CHAIR_TUCK = 0.06
+
 // Chair centers (plan meters) on the four sides of the table.
+// Tucked: chairs slide under the tabletop, protruding only CHAIR_TUCK.
 export function diningChairCenters() {
-  const { cx, cy, w, d, chair, chairGap } = DINING
-  const offX = w / 2 + chairGap + chair / 2
-  const offY = d / 2 + chairGap + chair / 2
+  const { cx, cy, w, d, chair } = DINING
+  const offX = w / 2 - chair / 2 + CHAIR_TUCK
+  const offY = d / 2 - chair / 2 + CHAIR_TUCK
   return [
     { x: cx,        y: cy - offY },  // north
     { x: cx,        y: cy + offY },  // south
