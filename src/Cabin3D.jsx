@@ -507,6 +507,10 @@ function StudWallDims() {
           const offX = s.id === 'S1' ? -0.30 : 0.30
           items.push(<Dim key="F" p={[s.cx, s.cy]} q={[s.cx, H_LEFT]} off={[offX, 0]} label={(H_LEFT - s.cy).toFixed(2)} />)
         }
+        if (s.id === 'S2') {
+          // distance to the back (top) wall
+          items.push(<Dim key="B" p={[s.cx, 0]} q={[s.cx, s.cy]} off={[0.30, 0]} label={s.cy.toFixed(2)} />)
+        }
         return items.length ? <group key={s.id}>{items}</group> : null
       })}
       {/* spacing between S2 and S3 (same x line) */}
