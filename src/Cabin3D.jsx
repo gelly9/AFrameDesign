@@ -243,8 +243,8 @@ function Wall({ from, to, height, openings, out = [0, 0] }) {
   )
 }
 
-// ── A-frame roof: LEFT slope only, 62°, eave at floor level ────────
-const ROOF_PITCH    = 62 * Math.PI / 180
+// ── A-frame roof: LEFT slope only, 64°, eave at floor level ────────
+const ROOF_PITCH    = 64 * Math.PI / 180
 const ROOF_OVERHANG = 0.40   // eave begins 40cm outside the wall line
 
 function RoofPlane({ ax, ah, bx, bh, lenZ, zMid }) {
