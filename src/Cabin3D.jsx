@@ -413,9 +413,9 @@ export default function Cabin3D() {
           <Studs />
           <Staircase />
           <Kitchen3D />
-          <KitchenStudGap />
           <Person at={personAt} />
           {showDims && <Dimensions />}
+          {showDims && <KitchenStudGap />}
         </group>
 
         <Grid args={[30, 30]} cellColor="#3a4050" sectionColor="#2a3040"
