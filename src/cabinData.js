@@ -175,6 +175,15 @@ export const COUCH = {
   facing: 'southwest',  // faces the SW-corner TV along the diagonal
 }
 
+// ── Armchair (single seat) ────────────────────────────────────────
+// SE of the couch and a little forward, facing the TV. Placed so the
+// sightline passes south of the couch and clear of the studs.
+export const ARMCHAIR = {
+  cx: 1.10, cy: 5.30,   // back against stud S3; faces the TV (south)
+  w: 0.85, d: 0.85, h: 0.80,
+  facing: 'south',      // back toward stud S3 (north), faces the TV
+}
+
 // ── TV / media unit ───────────────────────────────────────────────
 // Angled in the SW corner facing NE toward the couch. The diagonal
 // sightline is longer (more viewing distance) and clears all studs.

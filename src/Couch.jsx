@@ -13,8 +13,8 @@ export const COUCH_ROT2D = {
 
 // Standalone 2D top-down couch. Drawn canonically facing SOUTH (backrest
 // on the north/top edge), then rotated about its center to face `facing`.
-export default function Couch({ px, py, scale }) {
-  const { cx, cy, w, d, facing } = COUCH
+export default function Couch({ px, py, scale, data = COUCH }) {
+  const { cx, cy, w, d, facing } = data
   const W = w * scale, D = d * scale
   const arm = ARM_W * scale
   const back = BACK_T * scale

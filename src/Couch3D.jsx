@@ -17,8 +17,8 @@ const ROT_Y = {
 // Standalone — render inside Cabin3D's centered group (plan coords = world).
 // Drawn canonically at the origin facing SOUTH (+z): backrest on -z (north),
 // then positioned at (cx, cy) and rotated to face `facing`.
-export default function Couch3D() {
-  const { cx, cy, w, d, h, facing } = COUCH
+export default function Couch3D({ data = COUCH }) {
+  const { cx, cy, w, d, h, facing } = data
   const innerW = w - 2 * ARM_W
   const backZ = -(d / 2 - BACK_T / 2)   // backrest on the north (-z) side
   const seatZ = BACK_T / 2

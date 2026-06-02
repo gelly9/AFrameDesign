@@ -4,7 +4,7 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
-  WALL_THICK, DINING, COUCH, BEAMS,
+  WALL_THICK, DINING, COUCH, ARMCHAIR, BEAMS,
 } from './cabinData.js'
 import Kitchen from './Kitchen'
 import DiningTable, { CHAIR_TUCK } from './DiningTable'
@@ -348,8 +348,9 @@ export default function FloorPlan() {
         {/* Kitchen run */}
         <Kitchen px={px} py={py} scale={SCALE} />
 
-        {/* Couch + TV */}
+        {/* Couch + armchair + TV */}
         <Couch px={px} py={py} scale={SCALE} />
+        <Couch px={px} py={py} scale={SCALE} data={ARMCHAIR} />
         <Tv px={px} py={py} scale={SCALE} />
         {/* Couch dimensions (axis-aligned facings only) */}
         {COUCH.facing.length <= 5 && (() => {

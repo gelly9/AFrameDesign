@@ -16,7 +16,7 @@ import { kitchenUnitRects } from './Kitchen.jsx'
 import DiningTable3D from './DiningTable3D'
 import Couch3D from './Couch3D'
 import Tv3D from './Tv3D'
-import { DINING, COUCH, TV } from './cabinData.js'
+import { DINING, COUCH, ARMCHAIR, TV } from './cabinData.js'
 
 // ── Coordinate convention ─────────────────────────────────────────
 // Plan coords are (x, y) with y increasing downward (south).
@@ -105,6 +105,7 @@ function blockedRects() {
     return [cx - xH, cy - yH, cx + xH, cy + yH]
   }
   rects.push(foot(COUCH.cx, COUCH.cy, COUCH.w, COUCH.d, COUCH.facing))
+  rects.push(foot(ARMCHAIR.cx, ARMCHAIR.cy, ARMCHAIR.w, ARMCHAIR.d, ARMCHAIR.facing))
   rects.push(foot(TV.cx, TV.cy, TV.consoleW, TV.consoleD, TV.facing))
   return rects
 }
@@ -594,6 +595,7 @@ export default function Cabin3D() {
           <Kitchen3D />
           <DiningTable3D />
           <Couch3D />
+          <Couch3D data={ARMCHAIR} />
           <Tv3D />
           {showRoof && <Roof />}
           <Person at={personAt} />
