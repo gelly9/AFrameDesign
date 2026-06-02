@@ -274,6 +274,53 @@ function Roof() {
   )
 }
 
+// Roof height above a given plan x (Infinity where there is no roof).
+function roofHeightAt(x) {
+  const footX = -ROOF_OVERHANG
+  if (x < footX || x > W_TOP) return Infinity
+  return (x - footX) * Math.tan(ROOF_PITCH)
+}
+
+// A wall running along x at plan-y = wy, with its TOP clipped to the
+// roof slope so it never pokes above the roof. Built as an extruded
+// profile (floor → min(wall height, roof height)).
+function ClippedXWall({ x1, x2, wy, outward }) {
+  const xa = Math.min(x1, x2) - WALL_THICK / 2
+  const xb = Math.max(x1, x2) + WALL_THICK / 2
+  const topAt = x => Math.min(WALL_HEIGHT, roofHeightAt(x))
+  const xCross = -ROOF_OVERHANG + WALL_HEIGHT / Math.tan(ROOF_PITCH)  // roof == wall height
+  const geo = useMemo(() => {
+    const s = new THREE.Shape()
+    s.moveTo(xa, 0)
+    s.lineTo(xb, 0)
+    s.lineTo(xb, topAt(xb))
+    if (xCross > xa && xCross < xb) s.lineTo(xCross, WALL_HEIGHT)
+    s.lineTo(xa, topAt(xa))
+    s.closePath()
+    return new THREE.ExtrudeGeometry(s, { depth: WALL_THICK, bevelEnabled: false })
+  }, [xa, xb, xCross])
+  const z = outward < 0 ? wy - WALL_THICK : wy   // sit outside the interior line
+  return (
+    <mesh geometry={geo} position={[0, 0, z]} castShadow receiveShadow>
+      <meshStandardMaterial color="#efe7d4" roughness={0.85} side={THREE.DoubleSide}
+                            transparent opacity={0.4} depthWrite={false} />
+    </mesh>
+  )
+}
+
+// Opening on an x-running wall, placed by absolute plan coordinates.
+function AbsOpening({ op }) {
+  if (!op) return null
+  const cx = (op.p[0] + op.q[0]) / 2
+  const wy = (op.p[1] + op.q[1]) / 2
+  const w = Math.hypot(op.q[0] - op.p[0], op.q[1] - op.p[1])
+  return (
+    <group position={[cx, op.sill + op.h / 2, wy]}>
+      <Opening op={op} w={w} cx={0} cy={0} />
+    </group>
+  )
+}
+
 // ── Staircase: steel mono-stringer with floating oak treads ───────
 // Open underneath (usable space below). Starts low at the right (door)
 // and rises toward the left.
@@ -473,7 +520,13 @@ export default function Cabin3D() {
         {/* Center the model on the world origin */}
         <group position={[-cx, 0, -cy]}>
           <Floor onPick={handlePick} />
-          {WALL_SEGMENTS.map(seg => (
+          {/* top & bottom walls: tops clipped to the roof slope */}
+          <ClippedXWall x1={0} x2={W_TOP}    wy={0}      outward={-1} />
+          <ClippedXWall x1={0} x2={W_BOTTOM} wy={H_LEFT} outward={1} />
+          <AbsOpening op={OPENINGS.find(o => o.wall === 'top')} />
+          <AbsOpening op={OPENINGS.find(o => o.wall === 'bottom')} />
+          {/* remaining vertical walls (not under the slope) stay full height */}
+          {WALL_SEGMENTS.filter(s => s.id !== 'top' && s.id !== 'bottom').map(seg => (
             <Wall key={seg.id} from={seg.from} to={seg.to} height={WALL_HEIGHT}
                   out={seg.out}
                   openings={OPENINGS.filter(o => o.wall === seg.id)} />
