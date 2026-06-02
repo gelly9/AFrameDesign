@@ -7,7 +7,7 @@ import {
   WALL_HEIGHT, WALL_THICK,
   ROOM_POLYGON, WALL_SEGMENTS,
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
-  STUD_SIZE, STUDS, FLOOR_AREA,
+  STUD_SIZE, STUD_HEIGHT, STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
   BEAMS,
 } from './cabinData.js'
@@ -427,8 +427,8 @@ function Studs() {
   return STUDS.map(s => {
     const [wx, wz] = toWorld([s.cx, s.cy])
     return (
-      <mesh key={s.id} position={[wx, WALL_HEIGHT / 2, wz]} castShadow receiveShadow>
-        <boxGeometry args={[STUD_SIZE, WALL_HEIGHT, STUD_SIZE]} />
+      <mesh key={s.id} position={[wx, STUD_HEIGHT / 2, wz]} castShadow receiveShadow>
+        <boxGeometry args={[STUD_SIZE, STUD_HEIGHT, STUD_SIZE]} />
         <meshStandardMaterial color="#6b5744" roughness={0.85} />
       </mesh>
     )
@@ -438,7 +438,7 @@ function Studs() {
 // 20×20cm tie beams sitting on top of the studs, running front-to-back.
 function TieBeams() {
   return BEAMS.map(b => (
-    <mesh key={b.id} position={[b.x, WALL_HEIGHT + b.size / 2, (b.y1 + b.y2) / 2]} castShadow receiveShadow>
+    <mesh key={b.id} position={[b.x, STUD_HEIGHT + b.size / 2, (b.y1 + b.y2) / 2]} castShadow receiveShadow>
       <boxGeometry args={[b.size, b.size, b.y2 - b.y1]} />
       <meshStandardMaterial color="#d8b787" roughness={0.75} />
     </mesh>

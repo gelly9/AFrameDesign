@@ -106,8 +106,9 @@ export const TOP_WINDOW = {
   sillHeight: 1.40,
 }
 
-// ── Wood studs (15×15 cm posts) ───────────────────────────────────
-export const STUD_SIZE = 0.15
+// ── Wood studs (15×15 cm posts, 2.43m tall) ───────────────────────
+export const STUD_SIZE   = 0.15
+export const STUD_HEIGHT = 2.43
 export const STUDS = [
   { id: 'S1', cx: W_BOTTOM - 1.20, cy: H_LEFT  - 2.40 },
   { id: 'S2', cx: 1.20,            cy: 3.30           },
