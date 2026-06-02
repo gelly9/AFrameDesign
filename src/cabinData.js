@@ -112,9 +112,9 @@ export const STUD_HEIGHT = 2.43
 // Positioned so the NEAR FACE (toward the side wall) is 1.20m from it,
 // i.e. the centerline sits 1.20 + half the stud width into the room.
 export const STUDS = [
-  { id: 'S1', cx: W_BOTTOM - 1.20 - STUD_SIZE / 2, cy: H_LEFT - 2.40 },
+  { id: 'S1', cx: W_BOTTOM - 1.20 - STUD_SIZE / 2, cy: H_LEFT - 3.30 },
   { id: 'S2', cx: 1.20 + STUD_SIZE / 2,            cy: 3.30          },
-  { id: 'S3', cx: 1.20 + STUD_SIZE / 2,            cy: H_LEFT - 2.40 },
+  { id: 'S3', cx: 1.20 + STUD_SIZE / 2,            cy: H_LEFT - 3.30 },
 ]
 
 // ── Staircase ─────────────────────────────────────────────────────
