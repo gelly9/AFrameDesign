@@ -438,8 +438,8 @@ function Studs() {
 // 20×20cm tie beams sitting on top of the studs, running front-to-back.
 function TieBeams() {
   return BEAMS.map(b => (
-    <mesh key={b.id} position={[b.x, STUD_HEIGHT + b.size / 2, (b.y1 + b.y2) / 2]} castShadow receiveShadow>
-      <boxGeometry args={[b.size, b.size, b.y2 - b.y1]} />
+    <mesh key={b.id} position={[b.x, STUD_HEIGHT + b.height / 2, (b.y1 + b.y2) / 2]} castShadow receiveShadow>
+      <boxGeometry args={[b.width, b.height, b.y2 - b.y1]} />
       <meshStandardMaterial color="#d8b787" roughness={0.75} />
     </mesh>
   ))
@@ -487,6 +487,23 @@ function Dim({ p, q, off, label }) {
 
 function Dimensions() {
   return DIMS.map((d, i) => <Dim key={i} {...d} />)
+}
+
+// Stud placement dims: distance from the left wall (S2 & S3), plus the
+// distance from the front (bottom) wall for S3 and S1.
+function StudWallDims() {
+  return STUDS.map(s => {
+    const offY = s.cy < H_LEFT / 2 ? -0.40 : 0.40
+    const items = []
+    if (s.id === 'S2' || s.id === 'S3') {
+      items.push(<Dim key="L" p={[0, s.cy]} q={[s.cx, s.cy]} off={[0, offY]} label={s.cx.toFixed(2)} />)
+    }
+    if (s.id === 'S3' || s.id === 'S1') {
+      const offX = s.id === 'S1' ? -0.30 : 0.30   // keep the line clear of furniture
+      items.push(<Dim key="F" p={[s.cx, s.cy]} q={[s.cx, H_LEFT]} off={[offX, 0]} label={(H_LEFT - s.cy).toFixed(2)} />)
+    }
+    return items.length ? <group key={s.id}>{items}</group> : null
+  })
 }
 
 // Clear distance between the kitchen counter front and stud S1
@@ -565,6 +582,7 @@ export default function Cabin3D() {
           {showRoof && <Roof />}
           <Person at={personAt} />
           {showDims && <Dimensions />}
+          {showDims && <StudWallDims />}
           {showDims && <KitchenStudGap />}
         </group>
 

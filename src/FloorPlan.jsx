@@ -422,12 +422,12 @@ export default function FloorPlan() {
         {/* Tie beams above the studs (overhead → dashed) */}
         {BEAMS.map(b => (
           <g key={b.id}>
-            <rect x={px(b.x - b.size / 2)} y={py(b.y1)}
-                  width={b.size * SCALE} height={(b.y2 - b.y1) * SCALE}
+            <rect x={px(b.x - b.width / 2)} y={py(b.y1)}
+                  width={b.width * SCALE} height={(b.y2 - b.y1) * SCALE}
                   fill="none" stroke="#b58a52" strokeWidth={1} strokeDasharray="6,4" opacity={0.7} />
             <text x={px(b.x) + 6} y={py(b.y1) + 60} fill="#b58a52" fontSize={9}
                   fontWeight={700} transform={`rotate(90 ${px(b.x) + 6} ${py(b.y1) + 60})`}
-                  fontFamily="'Helvetica Neue',Arial,sans-serif">BEAM 20×20 (above)</text>
+                  fontFamily="'Helvetica Neue',Arial,sans-serif">BEAM 20×15 (above)</text>
           </g>
         ))}
 

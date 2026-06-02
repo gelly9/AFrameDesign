@@ -188,9 +188,10 @@ export const TV = {
 // 20×20cm beams sitting on top of the studs, running front-to-back.
 // B1 spans the full depth over the x=1.20 studs (S2, S3); B2 spans from
 // the inner step wall to the front over the single x=5.40 stud (S1).
+// 20cm tall × 15cm wide section.
 export const BEAMS = [
-  { id: 'B1', x: 1.20, size: 0.20, y1: 0,      y2: H_LEFT },
-  { id: 'B2', x: 5.40, size: 0.20, y1: STEP_Y, y2: H_LEFT },
+  { id: 'B1', x: 1.20, width: 0.15, height: 0.20, y1: 0,      y2: H_LEFT },
+  { id: 'B2', x: 5.40, width: 0.15, height: 0.20, y1: STEP_Y, y2: H_LEFT },
 ]
 
 // ── Total floor area (m²) ─────────────────────────────────────────
