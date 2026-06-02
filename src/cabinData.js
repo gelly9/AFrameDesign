@@ -109,9 +109,9 @@ export const TOP_WINDOW = {
 // ── Wood studs (15×15 cm posts) ───────────────────────────────────
 export const STUD_SIZE = 0.15
 export const STUDS = [
-  { id: 'S1', cx: W_BOTTOM - 1.20, cy: H_LEFT  - 2.30 },
+  { id: 'S1', cx: W_BOTTOM - 1.20, cy: H_LEFT  - 2.40 },
   { id: 'S2', cx: 1.20,            cy: 3.30           },
-  { id: 'S3', cx: 1.20,            cy: H_LEFT - 2.30 },
+  { id: 'S3', cx: 1.20,            cy: H_LEFT - 2.40 },
 ]
 
 // ── Staircase ─────────────────────────────────────────────────────
