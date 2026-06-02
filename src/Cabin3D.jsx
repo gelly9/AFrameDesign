@@ -489,21 +489,32 @@ function Dimensions() {
   return DIMS.map((d, i) => <Dim key={i} {...d} />)
 }
 
-// Stud placement dims: distance from the left wall (S2 & S3), plus the
-// distance from the front (bottom) wall for S3 and S1.
+// Stud placement dims: distance from the left wall (S2 & S3), the
+// distance from the front (bottom) wall for S3 and S1, and the spacing
+// between S2 and S3.
 function StudWallDims() {
-  return STUDS.map(s => {
-    const offY = s.cy < H_LEFT / 2 ? -0.40 : 0.40
-    const items = []
-    if (s.id === 'S2' || s.id === 'S3') {
-      items.push(<Dim key="L" p={[0, s.cy]} q={[s.cx, s.cy]} off={[0, offY]} label={s.cx.toFixed(2)} />)
-    }
-    if (s.id === 'S3' || s.id === 'S1') {
-      const offX = s.id === 'S1' ? -0.30 : 0.30   // keep the line clear of furniture
-      items.push(<Dim key="F" p={[s.cx, s.cy]} q={[s.cx, H_LEFT]} off={[offX, 0]} label={(H_LEFT - s.cy).toFixed(2)} />)
-    }
-    return items.length ? <group key={s.id}>{items}</group> : null
-  })
+  const s2 = STUDS.find(s => s.id === 'S2')
+  const s3 = STUDS.find(s => s.id === 'S3')
+  return (
+    <group>
+      {STUDS.map(s => {
+        const offY = s.cy < H_LEFT / 2 ? -0.40 : 0.40
+        const items = []
+        if (s.id === 'S2' || s.id === 'S3') {
+          items.push(<Dim key="L" p={[0, s.cy]} q={[s.cx, s.cy]} off={[0, offY]} label={s.cx.toFixed(2)} />)
+        }
+        if (s.id === 'S3' || s.id === 'S1') {
+          const offX = s.id === 'S1' ? -0.30 : 0.30
+          items.push(<Dim key="F" p={[s.cx, s.cy]} q={[s.cx, H_LEFT]} off={[offX, 0]} label={(H_LEFT - s.cy).toFixed(2)} />)
+        }
+        return items.length ? <group key={s.id}>{items}</group> : null
+      })}
+      {/* spacing between S2 and S3 (same x line) */}
+      {s2 && s3 && (
+        <Dim p={[s2.cx, s2.cy]} q={[s3.cx, s3.cy]} off={[-0.40, 0]} label={(s3.cy - s2.cy).toFixed(2)} />
+      )}
+    </group>
+  )
 }
 
 // Clear distance between the kitchen counter front and stud S1
