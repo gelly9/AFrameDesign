@@ -4,9 +4,10 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
-  WALL_THICK,
+  WALL_THICK, DINING,
 } from './cabinData.js'
 import Kitchen from './Kitchen'
+import DiningTable from './DiningTable'
 
 const SCALE = 95
 // Walls are drawn OUTWARD from the interior line: a centered stroke of
@@ -344,6 +345,25 @@ export default function FloorPlan() {
 
         {/* Kitchen run */}
         <Kitchen px={px} py={py} scale={SCALE} />
+
+        {/* Dining table */}
+        <DiningTable px={px} py={py} scale={SCALE} />
+        {/* Dining dimensions: table 0.90×0.90, chair 0.45 */}
+        {(() => {
+          const { cx, cy, w, d, chair, chairGap } = DINING
+          const southChairBot = cy + d / 2 + chairGap + chair  // bottom edge of south chair
+          const wood = '#8c6741'
+          return (
+            <g>
+              {/* chair width */}
+              <HDim x1m={cx - chair / 2} x2m={cx + chair / 2} ym={southChairBot} label="0.45 m" above={false} gap={18} color={wood} />
+              {/* table width */}
+              <HDim x1m={cx - w / 2} x2m={cx + w / 2} ym={southChairBot} label="0.90 m" above={false} gap={46} color={wood} />
+              {/* table depth */}
+              <VDim xm={cx - w / 2} y1m={cy - d / 2} y2m={cy + d / 2} label="0.90 m" side="left" gap={60} color={wood} />
+            </g>
+          )
+        })()}
 
         {/* Staircase — runs horizontally, ascends right */}
         {(() => {

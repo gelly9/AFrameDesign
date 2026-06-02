@@ -150,5 +150,15 @@ export const KITCHEN = {
 }
 export const KITCHEN_RUN = KITCHEN.units.reduce((s, u) => s + u.w, 0)  // 3.20m
 
+// ── Dining table ──────────────────────────────────────────────────
+// Square 4-top in the open zone between the stairs, kitchen and entrance.
+export const DINING = {
+  cx: 4.25, cy: 5.90,   // center (plan coords) — pulled toward stud S1
+  w: 0.90, d: 0.90,     // table top size
+  seats: 4,
+  chair: 0.45,          // chair footprint (square)
+  chairGap: 0.06,       // gap between table edge and chair
+}
+
 // ── Total floor area (m²) ─────────────────────────────────────────
 export const FLOOR_AREA = W_TOP * H_LEFT + STEP_W * H_RIGHT
