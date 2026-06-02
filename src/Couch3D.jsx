@@ -7,36 +7,39 @@ const BACK_T = 0.18
 const FABRIC    = '#8d9bb0'
 const FABRIC_DK = '#7d8ba2'
 
+// facing → rotation about Y of the canonical (faces-south, +z) couch
+const ROT_Y = { south: 0, west: -Math.PI / 2, north: Math.PI, east: Math.PI / 2 }
+
 // Standalone — render inside Cabin3D's centered group (plan coords = world).
-// Backrest sits on the side opposite `facing`; seat opens toward `facing`.
+// Drawn canonically at the origin facing SOUTH (+z): backrest on -z (north),
+// then positioned at (cx, cy) and rotated to face `facing`.
 export default function Couch3D() {
   const { cx, cy, w, d, h, facing } = COUCH
   const innerW = w - 2 * ARM_W
-  const backSign = facing === 'south' ? -1 : 1   // y-side of the backrest
-  const backZ = cy + backSign * (d / 2 - BACK_T / 2)
-  const seatZ = cy - backSign * (BACK_T / 2)
+  const backZ = -(d / 2 - BACK_T / 2)   // backrest on the north (-z) side
+  const seatZ = BACK_T / 2
   return (
-    <group>
+    <group position={[cx, 0, cy]} rotation={[0, ROT_Y[facing] ?? 0, 0]}>
       {/* seat base */}
-      <mesh position={[cx, SEAT_H / 2, seatZ]} castShadow receiveShadow>
+      <mesh position={[0, SEAT_H / 2, seatZ]} castShadow receiveShadow>
         <boxGeometry args={[innerW, SEAT_H, d - BACK_T]} />
         <meshStandardMaterial color={FABRIC} roughness={0.9} />
       </mesh>
       {/* backrest */}
-      <mesh position={[cx, h / 2, backZ]} castShadow>
+      <mesh position={[0, h / 2, backZ]} castShadow>
         <boxGeometry args={[w, h, BACK_T]} />
         <meshStandardMaterial color={FABRIC_DK} roughness={0.9} />
       </mesh>
-      {/* armrests (west / east) */}
+      {/* armrests */}
       {[-1, 1].map(s => (
-        <mesh key={s} position={[cx + s * (w / 2 - ARM_W / 2), ARM_H / 2, cy]} castShadow>
+        <mesh key={s} position={[s * (w / 2 - ARM_W / 2), ARM_H / 2, 0]} castShadow>
           <boxGeometry args={[ARM_W, ARM_H, d]} />
           <meshStandardMaterial color={FABRIC_DK} roughness={0.9} />
         </mesh>
       ))}
       {/* seat cushions */}
       {[-1, 0, 1].map(i => (
-        <mesh key={i} position={[cx + i * (innerW / 3), SEAT_H + 0.06, seatZ]} castShadow>
+        <mesh key={i} position={[i * (innerW / 3), SEAT_H + 0.06, seatZ]} castShadow>
           <boxGeometry args={[innerW / 3 - 0.03, 0.12, d - BACK_T - 0.04]} />
           <meshStandardMaterial color={FABRIC} roughness={0.85} />
         </mesh>

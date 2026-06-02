@@ -351,14 +351,14 @@ export default function FloorPlan() {
         {/* Couch + TV */}
         <Couch px={px} py={py} scale={SCALE} />
         <Tv px={px} py={py} scale={SCALE} />
-        {/* Couch dimensions: 2.10 wide × 0.84 deep */}
+        {/* Couch dimensions (faces west: 2.10 long axis in y, 0.84 deep in x) */}
         {(() => {
           const { cx, cy, w, d } = COUCH
           const blue = '#566273'
           return (
             <g>
-              <HDim x1m={cx - w / 2} x2m={cx + w / 2} ym={cy + d / 2} label="2.10 m" above={false} gap={24} color={blue} />
-              <VDim xm={cx + w / 2} y1m={cy - d / 2} y2m={cy + d / 2} label="0.84 m" side="right" gap={30} color={blue} />
+              <VDim xm={cx + d / 2} y1m={cy - w / 2} y2m={cy + w / 2} label="2.10 m" side="right" gap={30} color={blue} />
+              <HDim x1m={cx - d / 2} x2m={cx + d / 2} ym={cy + w / 2} label="0.84 m" above={false} gap={24} color={blue} />
             </g>
           )
         })()}

@@ -161,24 +161,26 @@ export const DINING = {
 }
 
 // ── Couch ─────────────────────────────────────────────────────────
-// 210 × 84 cm (0.85m tall) in the living strip, facing the south glass
-// gable. Long axis E–W; backrest on the north side.
+// 210 × 84 cm (0.85m tall). Sits between the studs (in y) facing WEST
+// toward the TV on the A-frame wall, so the view threads between S2/S3.
 export const COUCH = {
-  cx: 1.65, cy: 6.42,   // center (plan coords) — moved south, faces the TV
-  w: 2.10,              // width (along x)
-  d: 0.84,              // depth (along y)
+  cx: 2.63, cy: 4.60,   // center — between the studs (y), backs onto the east
+  w: 2.10,              // seating width (along the wall it backs onto)
+  d: 0.84,              // depth (toward the facing direction)
   h: 0.85,              // height (3D)
-  facing: 'north',      // seat opens toward -y (toward the TV wall)
+  facing: 'west',       // seat opens toward -x (the A-frame wall / TV)
 }
 
 // ── TV / media unit ───────────────────────────────────────────────
-// At the north end of the living strip (west of the stairs, clear of
-// the bathroom door). Console with a wall-style panel above, facing south.
+// On the west (A-frame) wall, between the studs, facing east toward the
+// couch. The view threads between studs S2 and S3.
 export const TV = {
-  cx: 1.50,            // center x
-  consoleY: 3.65,      // console center y (north end of living strip)
-  consoleW: 1.60, consoleD: 0.40, consoleH: 0.50,
-  panelW: 1.40, panelH: 0.80, panelSill: 0.65,  // TV panel above the console
+  cx: 0.70, cy: 4.60,  // center — pulled east so the slope clears the screen
+  consoleW: 1.60,      // length along the wall
+  consoleD: 0.40,      // depth into the room
+  consoleH: 0.50,
+  panelW: 1.40, panelH: 0.80, panelSill: 0.65,
+  facing: 'east',      // screen faces +x (the couch)
 }
 
 // ── Tie beams ─────────────────────────────────────────────────────

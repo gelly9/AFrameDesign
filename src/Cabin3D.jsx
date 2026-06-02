@@ -92,10 +92,15 @@ function blockedRects() {
     rects.push([s.cx - STUD_SIZE / 2, s.cy - STUD_SIZE / 2, s.cx + STUD_SIZE / 2, s.cy + STUD_SIZE / 2])
   rects.push([DINING.cx - DINING.w / 2, DINING.cy - DINING.d / 2,
               DINING.cx + DINING.w / 2, DINING.cy + DINING.d / 2])
-  rects.push([COUCH.cx - COUCH.w / 2, COUCH.cy - COUCH.d / 2,
-              COUCH.cx + COUCH.w / 2, COUCH.cy + COUCH.d / 2])
-  rects.push([TV.cx - TV.consoleW / 2, TV.consoleY - TV.consoleD / 2,
-              TV.cx + TV.consoleW / 2, TV.consoleY + TV.consoleD / 2])
+  // Orientation-aware footprints: swap extents for east/west facing.
+  const foot = (cx, cy, along, depth, facing) => {
+    const ew = facing === 'east' || facing === 'west'
+    const xH = ew ? depth / 2 : along / 2
+    const yH = ew ? along / 2 : depth / 2
+    return [cx - xH, cy - yH, cx + xH, cy + yH]
+  }
+  rects.push(foot(COUCH.cx, COUCH.cy, COUCH.w, COUCH.d, COUCH.facing))
+  rects.push(foot(TV.cx, TV.cy, TV.consoleW, TV.consoleD, TV.facing))
   return rects
 }
 
