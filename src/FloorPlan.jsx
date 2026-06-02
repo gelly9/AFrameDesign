@@ -437,11 +437,11 @@ export default function FloorPlan() {
 
         {/* ── Wall dimensions (gray) ── */}
         <HDim x1m={0} x2m={W_TOP}    ym={0}      label="3.30 m" above gap={48} />
-        <VDim xm={0}  y1m={0} y2m={H_LEFT}       label="8.20 m" side="left"  gap={70} />
-        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y}    label="3.40 m" side="right" gap={46} />
+        <VDim xm={0}  y1m={0} y2m={H_LEFT}       label="8.10 m" side="left"  gap={70} />
+        <VDim xm={W_TOP} y1m={0} y2m={STEP_Y}    label="3.10 m" side="right" gap={46} />
         <HDim x1m={W_TOP} x2m={W_BOTTOM} ym={STEP_Y} label="3.30 m" above={false} gap={32} />
         <HDim x1m={0} x2m={W_BOTTOM}             ym={H_LEFT} label="6.60 m" above={false} gap={120} />
-        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT}    label="4.80 m" side="right" gap={155} />
+        <VDim xm={W_BOTTOM} y1m={STEP_Y} y2m={H_LEFT}    label="5.00 m" side="right" gap={155} />
 
         {/* ── Opening dimensions (blue) ── */}
         {/* Top wall window */}

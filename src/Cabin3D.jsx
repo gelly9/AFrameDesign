@@ -449,11 +449,11 @@ function TieBeams() {
 // Each entry: edge endpoints in plan coords + an outward offset (plan)
 // and the length label. Drawn flat on the floor so it reads from above.
 const DIMS = [
-  { p: [0, 0],        q: [0, H_LEFT],        off: [-0.55, 0],  label: '8.20' },
+  { p: [0, 0],        q: [0, H_LEFT],        off: [-0.55, 0],  label: '8.10' },
   { p: [0, H_LEFT],   q: [W_BOTTOM, H_LEFT], off: [0, 0.55],   label: '6.60' },
   { p: [0, 0],        q: [W_TOP, 0],         off: [0, -0.55],  label: '3.30' },
-  { p: [W_BOTTOM, STEP_Y], q: [W_BOTTOM, H_LEFT], off: [0.55, 0], label: '4.80' },
-  { p: [W_TOP, 0],    q: [W_TOP, STEP_Y],    off: [0.45, 0],   label: '3.40' },
+  { p: [W_BOTTOM, STEP_Y], q: [W_BOTTOM, H_LEFT], off: [0.55, 0], label: '5.00' },
+  { p: [W_TOP, 0],    q: [W_TOP, STEP_Y],    off: [0.45, 0],   label: '3.10' },
   { p: [W_TOP, STEP_Y], q: [W_BOTTOM, STEP_Y], off: [0, -0.45], label: '3.30' },
 ]
 

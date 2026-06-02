@@ -4,10 +4,10 @@
 
 // ── Wall dimensions ───────────────────────────────────────────────
 export const W_TOP    = 3.30   // top (back) wall
-export const H_LEFT   = 8.20   // left wall (A-frame side, slopes down to floor in 3D)
+export const H_LEFT   = 8.10   // left wall (A-frame side, slopes down to floor in 3D)
 export const W_BOTTOM = 6.60   // bottom (front) wall
-export const H_RIGHT  = 4.80   // right outer wall
-export const STEP_Y   = H_LEFT - H_RIGHT   // 3.40m — inner step vertical
+export const H_RIGHT  = 5.00   // right outer wall
+export const STEP_Y   = H_LEFT - H_RIGHT   // 3.10m — inner step vertical
 export const STEP_W   = W_BOTTOM - W_TOP   // 3.30m — inner step horizontal
 
 // ── 3D structure (will be tunable later) ──────────────────────────
@@ -42,7 +42,7 @@ function _pip(x, y, poly) {
 }
 
 // ── Wall segments (used by the 3D view to build vertical walls) ──
-// The LEFT wall (8.20m) is intentionally omitted — it's the A-frame
+// The LEFT wall (8.10m) is intentionally omitted — it's the A-frame
 // slope meeting the floor, not a vertical wall.
 // Each segment gets a unit OUTWARD normal `out` (plan coords).
 export const WALL_SEGMENTS = [
@@ -79,7 +79,7 @@ export const TERRACE_DOOR = {
   height:  2.10,
 }
 
-// ── Bathroom door (inner 3.40m wall) ──────────────────────────────
+// ── Bathroom door (inner 3.10m wall) ──────────────────────────────
 export const BATHROOM_DOOR = {
   wall: 'innerVert',
   fromBottom: 0.80,
@@ -128,7 +128,7 @@ export const STAIR = {
 // Derived footprint (plan coords)
 export const STAIR_X2 = W_BOTTOM - STAIR.gapFromRightWall               // 5.60 (right)
 export const STAIR_X1 = STAIR_X2 - STAIR.run                            // 3.10 (left)
-export const STAIR_Y1 = STEP_Y                                         // 3.40 (against inner wall)
+export const STAIR_Y1 = STEP_Y                                         // 3.10 (against inner wall)
 export const STAIR_Y2 = STAIR_Y1 + STAIR.width                          // 4.40 (bottom)
 
 // ── Kitchen run ───────────────────────────────────────────────────
