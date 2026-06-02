@@ -243,6 +243,37 @@ function Wall({ from, to, height, openings, out = [0, 0] }) {
   )
 }
 
+// ── A-frame roof: LEFT slope only, 62°, eave at floor level ────────
+const ROOF_PITCH    = 62 * Math.PI / 180
+const ROOF_OVERHANG = 0.40   // eave begins 40cm outside the wall line
+
+function RoofPlane({ ax, ah, bx, bh, lenZ, zMid }) {
+  const w = Math.hypot(bx - ax, bh - ah)
+  const ang = Math.atan2(bh - ah, bx - ax)
+  return (
+    <mesh position={[(ax + bx) / 2, (ah + bh) / 2, zMid]} rotation={[0, 0, ang]}>
+      <boxGeometry args={[w, 0.10, lenZ]} />
+      <meshStandardMaterial color="#9ec8e0" transparent opacity={0.16}
+                            roughness={0.1} metalness={0.2}
+                            side={THREE.DoubleSide} depthWrite={false} />
+    </mesh>
+  )
+}
+
+function Roof() {
+  const ridgeX = W_TOP                                          // ridge over the inner step
+  const footX  = -ROOF_OVERHANG                                 // eave 20cm outside the wall
+  const ridgeH = (ridgeX - footX) * Math.tan(ROOF_PITCH)        // from floor (height 0)
+  const lenZ = H_LEFT
+  const zMid = H_LEFT / 2
+  return (
+    <group>
+      {/* left slope: eave at floor level (20cm outside the wall) → ridge, at 60° */}
+      <RoofPlane ax={footX} ah={0} bx={ridgeX} bh={ridgeH} lenZ={lenZ} zMid={zMid} />
+    </group>
+  )
+}
+
 // ── Staircase: steel mono-stringer with floating oak treads ───────
 // Open underneath (usable space below). Starts low at the right (door)
 // and rises toward the left.
@@ -418,6 +449,7 @@ function KitchenStudGap() {
 
 export default function Cabin3D() {
   const [showDims, setShowDims] = useState(true)
+  const [showRoof, setShowRoof] = useState(true)
   const [personAt, setPersonAt] = useState([1.6, 6.3])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
@@ -451,6 +483,7 @@ export default function Cabin3D() {
           <Kitchen3D />
           <DiningTable3D />
           <Couch3D />
+          {showRoof && <Roof />}
           <Person at={personAt} />
           {showDims && <Dimensions />}
           {showDims && <KitchenStudGap />}
@@ -460,20 +493,34 @@ export default function Cabin3D() {
               position={[0, -0.11, 0]} fadeDistance={28} infiniteGrid />
         <OrbitControls makeDefault target={[0, 1, 0]} />
       </Canvas>
-      <button
-        onClick={() => setShowDims(d => !d)}
-        style={{
-          position: 'absolute', top: 16, right: 16,
-          padding: '7px 14px', borderRadius: 6, cursor: 'pointer',
-          border: '1px solid rgba(255,255,255,0.15)',
-          background: showDims ? '#e2b84a' : 'rgba(0,0,0,0.45)',
-          color: showDims ? '#1a1f2a' : '#cbd5e1',
-          fontFamily: 'system-ui, sans-serif', fontSize: 12, fontWeight: 600,
-          backdropFilter: 'blur(8px)',
-        }}
-      >
-        {showDims ? 'Hide dimensions' : 'Show dimensions'}
-      </button>
+      <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8 }}>
+        <button
+          onClick={() => setShowRoof(r => !r)}
+          style={{
+            padding: '7px 14px', borderRadius: 6, cursor: 'pointer',
+            border: '1px solid rgba(255,255,255,0.15)',
+            background: showRoof ? '#9ec8e0' : 'rgba(0,0,0,0.45)',
+            color: showRoof ? '#1a1f2a' : '#cbd5e1',
+            fontFamily: 'system-ui, sans-serif', fontSize: 12, fontWeight: 600,
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          {showRoof ? 'Hide roof' : 'Show roof'}
+        </button>
+        <button
+          onClick={() => setShowDims(d => !d)}
+          style={{
+            padding: '7px 14px', borderRadius: 6, cursor: 'pointer',
+            border: '1px solid rgba(255,255,255,0.15)',
+            background: showDims ? '#e2b84a' : 'rgba(0,0,0,0.45)',
+            color: showDims ? '#1a1f2a' : '#cbd5e1',
+            fontFamily: 'system-ui, sans-serif', fontSize: 12, fontWeight: 600,
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          {showDims ? 'Hide dimensions' : 'Show dimensions'}
+        </button>
+      </div>
       <div style={{
         position: 'absolute', bottom: 24, left: 24,
         color: '#cbd5e1', fontFamily: 'system-ui, sans-serif', fontSize: 12,
