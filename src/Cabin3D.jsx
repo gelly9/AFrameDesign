@@ -92,8 +92,13 @@ function blockedRects() {
     rects.push([s.cx - STUD_SIZE / 2, s.cy - STUD_SIZE / 2, s.cx + STUD_SIZE / 2, s.cy + STUD_SIZE / 2])
   rects.push([DINING.cx - DINING.w / 2, DINING.cy - DINING.d / 2,
               DINING.cx + DINING.w / 2, DINING.cy + DINING.d / 2])
-  // Orientation-aware footprints: swap extents for east/west facing.
+  // Orientation-aware footprints. Diagonal facings use a conservative
+  // square bounding box; axis-aligned swap extents for east/west.
   const foot = (cx, cy, along, depth, facing) => {
+    if (facing && facing.length > 5) {            // 'southwest', 'northeast', …
+      const h = (along + depth) * Math.SQRT1_2 / 2
+      return [cx - h, cy - h, cx + h, cy + h]
+    }
     const ew = facing === 'east' || facing === 'west'
     const xH = ew ? depth / 2 : along / 2
     const yH = ew ? along / 2 : depth / 2

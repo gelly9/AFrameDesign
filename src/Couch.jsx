@@ -6,7 +6,10 @@ const ARM_W  = 0.16   // armrest width (m)
 const BACK_T = 0.18   // backrest depth (m)
 
 // facing → clockwise rotation of the canonical (faces-south) drawing
-export const COUCH_ROT2D = { south: 0, west: 90, north: 180, east: 270 }
+export const COUCH_ROT2D = {
+  south: 0, west: 90, north: 180, east: 270,
+  southwest: 45, southeast: 315, northwest: 135, northeast: 225,
+}
 
 // Standalone 2D top-down couch. Drawn canonically facing SOUTH (backrest
 // on the north/top edge), then rotated about its center to face `facing`.

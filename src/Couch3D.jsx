@@ -8,7 +8,11 @@ const FABRIC    = '#8d9bb0'
 const FABRIC_DK = '#7d8ba2'
 
 // facing → rotation about Y of the canonical (faces-south, +z) couch
-const ROT_Y = { south: 0, west: -Math.PI / 2, north: Math.PI, east: Math.PI / 2 }
+const ROT_Y = {
+  south: 0, west: -Math.PI / 2, north: Math.PI, east: Math.PI / 2,
+  southwest: -Math.PI / 4, southeast: Math.PI / 4,
+  northwest: -3 * Math.PI / 4, northeast: 3 * Math.PI / 4,
+}
 
 // Standalone — render inside Cabin3D's centered group (plan coords = world).
 // Drawn canonically at the origin facing SOUTH (+z): backrest on -z (north),

@@ -351,8 +351,8 @@ export default function FloorPlan() {
         {/* Couch + TV */}
         <Couch px={px} py={py} scale={SCALE} />
         <Tv px={px} py={py} scale={SCALE} />
-        {/* Couch dimensions (orientation-aware: long axis follows `facing`) */}
-        {(() => {
+        {/* Couch dimensions (axis-aligned facings only) */}
+        {COUCH.facing.length <= 5 && (() => {
           const { cx, cy, w, d, facing } = COUCH
           const blue = '#566273'
           const ew = facing === 'east' || facing === 'west'

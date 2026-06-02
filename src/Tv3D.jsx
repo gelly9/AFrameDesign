@@ -5,7 +5,11 @@ const SCREEN = '#0d1013'
 const FRAME  = '#1a1a1a'
 
 // facing → rotation about Y of the canonical (faces-south, +z) unit
-const ROT_Y = { south: 0, west: -Math.PI / 2, north: Math.PI, east: Math.PI / 2 }
+const ROT_Y = {
+  south: 0, west: -Math.PI / 2, north: Math.PI, east: Math.PI / 2,
+  southwest: -Math.PI / 4, southeast: Math.PI / 4,
+  northwest: -3 * Math.PI / 4, northeast: 3 * Math.PI / 4,
+}
 
 // Standalone — render inside Cabin3D's centered group (plan coords = world).
 // Drawn canonically facing SOUTH (+z): console with the screen on the north

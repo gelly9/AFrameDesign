@@ -5,7 +5,10 @@ const WOOD_DK = '#574737'
 const SCREEN  = '#1a1f24'
 
 // facing → clockwise rotation of the canonical (faces-south) drawing
-const TV_ROT2D = { south: 0, west: 90, north: 180, east: 270 }
+const TV_ROT2D = {
+  south: 0, west: 90, north: 180, east: 270,
+  southwest: 45, southeast: 315, northwest: 135, northeast: 225,
+}
 
 // Standalone 2D top-down TV. Drawn canonically facing SOUTH (console with
 // the screen panel on the north/top edge), then rotated to face `facing`.

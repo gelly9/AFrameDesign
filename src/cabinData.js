@@ -164,23 +164,23 @@ export const DINING = {
 // 210 × 84 cm (0.85m tall). Sits between the studs (in y) facing WEST
 // toward the TV on the A-frame wall, so the view threads between S2/S3.
 export const COUCH = {
-  cx: 1.40, cy: 6.37,   // SW area, south of stud S3, facing the TV
+  cx: 2.70, cy: 5.82,   // NE of the SW-corner TV, on the 45° diagonal (a bit closer)
   w: 2.10,              // seating width (along the wall it backs onto)
   d: 0.84,              // depth (toward the facing direction)
   h: 0.85,              // height (3D)
-  facing: 'south',      // seat opens toward +y (the SW-corner TV)
+  facing: 'southwest',  // faces the SW-corner TV along the diagonal
 }
 
 // ── TV / media unit ───────────────────────────────────────────────
-// In the SW nook (south of stud S3), facing north toward the couch.
-// The whole sightline sits south of S3, so no stud blocks the view.
+// Angled in the SW corner facing NE toward the couch. The diagonal
+// sightline is longer (more viewing distance) and clears all studs.
 export const TV = {
-  cx: 0.80, cy: 7.90,  // SW corner, west of the entrance glass
+  cx: 0.78, cy: 7.55,  // tucked into the SW corner
   consoleW: 1.20,      // length along the wall
   consoleD: 0.40,      // depth into the room
   consoleH: 0.50,
   panelW: 1.10, panelH: 0.80, panelSill: 0.65,
-  facing: 'north',     // screen faces -y (the couch)
+  facing: 'northeast', // screen faces the couch along the diagonal
 }
 
 // ── Tie beams ─────────────────────────────────────────────────────
