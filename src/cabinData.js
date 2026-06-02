@@ -206,5 +206,13 @@ export const BEAMS = [
   { id: 'B2', x: W_BOTTOM - 1.20 - STUD_SIZE / 2, width: 0.15, height: 0.20, y1: STEP_Y, y2: H_LEFT },
 ]
 
+// Cross joists resting on top of beams B1 & B2 (span x between them),
+// 20cm tall × 15cm wide, spaced 60cm along the depth (y).
+export const JOIST = {
+  spacing: 0.60,
+  width:   0.15,   // along y
+  height:  0.20,   // vertical
+}
+
 // ── Total floor area (m²) ─────────────────────────────────────────
 export const FLOOR_AREA = W_TOP * H_LEFT + STEP_W * H_RIGHT

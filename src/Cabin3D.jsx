@@ -9,7 +9,7 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUD_HEIGHT, STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
-  BEAMS,
+  BEAMS, JOIST,
 } from './cabinData.js'
 import Kitchen3D from './Kitchen3D'
 import { kitchenUnitRects } from './Kitchen.jsx'
@@ -446,6 +446,28 @@ function TieBeams() {
   ))
 }
 
+// Cross joists resting on top of beams B1 & B2, spanning x between them.
+function CrossJoists() {
+  const b1 = BEAMS.find(b => b.id === 'B1')
+  const b2 = BEAMS.find(b => b.id === 'B2')
+  const xMid = (b1.x + b2.x) / 2
+  const len  = Math.abs(b2.x - b1.x) + JOIST.width          // span across, onto the beams
+  const notch = 0.05                                        // notched 5cm into the beams
+  const cY   = STUD_HEIGHT + b1.height - notch + JOIST.height / 2
+  const y0   = b2.y2 - JOIST.width / 2                       // first joist flush with the front wall
+  const joists = []
+  for (let i = 0; i < 6; i++) {                              // 6 joists, going back
+    const y = y0 - i * JOIST.spacing
+    joists.push(
+      <mesh key={i} position={[xMid, cY, y]} castShadow receiveShadow>
+        <boxGeometry args={[len, JOIST.height, JOIST.width]} />
+        <meshStandardMaterial color="#c2a878" roughness={0.8} />
+      </mesh>
+    )
+  }
+  return <group>{joists}</group>
+}
+
 // ── Dimension annotations on the floor plane ──────────────────────
 // Each entry: edge endpoints in plan coords + an outward offset (plan)
 // and the length label. Drawn flat on the floor so it reads from above.
@@ -554,7 +576,7 @@ function KitchenStudGap() {
 
 export default function Cabin3D() {
   const [showDims, setShowDims] = useState(true)
-  const [showRoof, setShowRoof] = useState(true)
+  const [showRoof, setShowRoof] = useState(false)
   const [personAt, setPersonAt] = useState([1.6, 6.3])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
@@ -591,6 +613,7 @@ export default function Cabin3D() {
           ))}
           <Studs />
           <TieBeams />
+          {showRoof && <CrossJoists />}
           <Staircase />
           <Kitchen3D />
           <DiningTable3D />
