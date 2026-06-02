@@ -501,7 +501,8 @@ function StudWallDims() {
         const offY = s.cy < H_LEFT / 2 ? -0.40 : 0.40
         const items = []
         if (s.id === 'S2' || s.id === 'S3') {
-          items.push(<Dim key="L" p={[0, s.cy]} q={[s.cx, s.cy]} off={[0, offY]} label={s.cx.toFixed(2)} />)
+          const faceL = s.cx - STUD_SIZE / 2   // near face toward the left wall
+          items.push(<Dim key="L" p={[0, s.cy]} q={[faceL, s.cy]} off={[0, offY]} label={faceL.toFixed(2)} />)
         }
         if (s.id === 'S3' || s.id === 'S1') {
           const offX = s.id === 'S1' ? -0.30 : 0.30
@@ -527,7 +528,7 @@ function KitchenStudGap() {
   if (!s1) return null
   const rects = kitchenUnitRects()
   const cabinetFrontX = Math.min(...rects.map(r => r.x1m))  // room-facing edge
-  const studX = s1.cx                                       // stud centerline (matches 2D dim)
+  const studX = s1.cx + STUD_SIZE / 2                       // stud face toward the counter
   const z = s1.cy
   const y = 0.06
   const a = [studX, y, z]

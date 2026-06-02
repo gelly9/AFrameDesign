@@ -41,8 +41,8 @@ const WIN2_X2    = WIN2_X1 + WIN2_WIDTH
 // Studs: attach dimension annotations
 const STUDS = RAW_STUDS.map(s => {
   const dims = []
-  if (s.cx > W_BOTTOM / 2) dims.push({ kind: 'h', from: 'right',  label: `${(W_BOTTOM - s.cx).toFixed(2)} m` })
-  else                     dims.push({ kind: 'h', from: 'left',   label: `${s.cx.toFixed(2)} m` })
+  if (s.cx > W_BOTTOM / 2) dims.push({ kind: 'h', from: 'right',  label: `${(W_BOTTOM - (s.cx + STUD_SIZE / 2)).toFixed(2)} m` })
+  else                     dims.push({ kind: 'h', from: 'left',   label: `${(s.cx - STUD_SIZE / 2).toFixed(2)} m` })
   if (s.cy > H_LEFT / 2)   dims.push({ kind: 'v', from: 'bottom', label: `${(H_LEFT - s.cy).toFixed(2)} m` })
   else                     dims.push({ kind: 'v', from: 'top',    label: `${s.cy.toFixed(2)} m` })
   return { ...s, dims }
@@ -147,18 +147,18 @@ function Stud({ stud }) {
 }
 
 function StudDims({ stud }) {
-  const x = stud.cx - STUD_SIZE / 2
-  const y = stud.cy - STUD_SIZE / 2
+  const xFaceL = stud.cx - STUD_SIZE / 2   // face toward the left wall
+  const xFaceR = stud.cx + STUD_SIZE / 2   // face toward the right wall
   const xMid = stud.cx
   const yMid = stud.cy
   return (
     <g>
       {stud.dims.map((d, i) => {
-        // Dimension to the stud CENTERLINE so the drawn line matches the label.
+        // Side (h) dims run to the stud FACE; front/back (v) to the centerline.
         if (d.kind === 'h' && d.from === 'right')
-          return <HDim key={i} x1m={xMid} x2m={W_BOTTOM} ym={yMid} label={d.label} above gap={26} color={C.stud} />
+          return <HDim key={i} x1m={xFaceR} x2m={W_BOTTOM} ym={yMid} label={d.label} above gap={26} color={C.stud} />
         if (d.kind === 'h' && d.from === 'left')
-          return <HDim key={i} x1m={0} x2m={xMid} ym={yMid} label={d.label} above gap={26} color={C.stud} />
+          return <HDim key={i} x1m={0} x2m={xFaceL} ym={yMid} label={d.label} above gap={26} color={C.stud} />
         if (d.kind === 'v' && d.from === 'top')
           return <VDim key={i} xm={xMid} y1m={0} y2m={yMid} label={d.label} side="left" gap={36} color={C.stud} />
         if (d.kind === 'v' && d.from === 'bottom')

@@ -109,10 +109,12 @@ export const TOP_WINDOW = {
 // ── Wood studs (15×15 cm posts, 2.43m tall) ───────────────────────
 export const STUD_SIZE   = 0.15
 export const STUD_HEIGHT = 2.43
+// Positioned so the NEAR FACE (toward the side wall) is 1.20m from it,
+// i.e. the centerline sits 1.20 + half the stud width into the room.
 export const STUDS = [
-  { id: 'S1', cx: W_BOTTOM - 1.20, cy: H_LEFT  - 2.40 },
-  { id: 'S2', cx: 1.20,            cy: 3.30           },
-  { id: 'S3', cx: 1.20,            cy: H_LEFT - 2.40 },
+  { id: 'S1', cx: W_BOTTOM - 1.20 - STUD_SIZE / 2, cy: H_LEFT - 2.40 },
+  { id: 'S2', cx: 1.20 + STUD_SIZE / 2,            cy: 3.30          },
+  { id: 'S3', cx: 1.20 + STUD_SIZE / 2,            cy: H_LEFT - 2.40 },
 ]
 
 // ── Staircase ─────────────────────────────────────────────────────
@@ -190,8 +192,8 @@ export const TV = {
 // the inner step wall to the front over the single x=5.40 stud (S1).
 // 20cm tall × 15cm wide section.
 export const BEAMS = [
-  { id: 'B1', x: 1.20, width: 0.15, height: 0.20, y1: 0,      y2: H_LEFT },
-  { id: 'B2', x: 5.40, width: 0.15, height: 0.20, y1: STEP_Y, y2: H_LEFT },
+  { id: 'B1', x: 1.20 + STUD_SIZE / 2,            width: 0.15, height: 0.20, y1: 0,      y2: H_LEFT },
+  { id: 'B2', x: W_BOTTOM - 1.20 - STUD_SIZE / 2, width: 0.15, height: 0.20, y1: STEP_Y, y2: H_LEFT },
 ]
 
 // ── Total floor area (m²) ─────────────────────────────────────────
