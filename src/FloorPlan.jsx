@@ -373,19 +373,17 @@ export default function FloorPlan() {
 
         {/* Dining table */}
         <DiningTable px={px} py={py} scale={SCALE} />
-        {/* Dining dimensions: table 0.90×0.90, chair 0.45 */}
+        {/* Dining dimensions: table w×d, chair 0.45 */}
         {(() => {
           const { cx, cy, w, d, chair } = DINING
           const southChairBot = cy + d / 2 + CHAIR_TUCK  // tucked chairs protrude only slightly
           const wood = '#8c6741'
           return (
             <g>
-              {/* chair width */}
-              <HDim x1m={cx - chair / 2} x2m={cx + chair / 2} ym={southChairBot} label="0.45 m" above={false} gap={18} color={wood} />
-              {/* table width */}
-              <HDim x1m={cx - w / 2} x2m={cx + w / 2} ym={southChairBot} label="0.90 m" above={false} gap={46} color={wood} />
-              {/* table depth */}
-              <VDim xm={cx - w / 2} y1m={cy - d / 2} y2m={cy + d / 2} label="0.90 m" side="left" gap={60} color={wood} />
+              {/* table width (x) */}
+              <HDim x1m={cx - w / 2} x2m={cx + w / 2} ym={southChairBot} label={`${w.toFixed(2)} m`} above={false} gap={24} color={wood} />
+              {/* table length (y) */}
+              <VDim xm={cx - w / 2} y1m={cy - d / 2} y2m={cy + d / 2} label={`${d.toFixed(2)} m`} side="left" gap={60} color={wood} />
             </g>
           )
         })()}

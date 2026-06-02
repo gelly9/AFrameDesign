@@ -56,11 +56,10 @@ export default function DiningTable3D() {
           <meshStandardMaterial color={WOOD_DK} roughness={0.75} />
         </mesh>
       ))}
-      {/* chairs (backrest faces away from table center) */}
+      {/* chairs (backrest on the outward side, per the chair's `face`) */}
       {chairs.map((c, i) => {
-        const dx = c.x - cx, dy = c.y - cy
-        const faceX = Math.abs(dx) > Math.abs(dy) ? Math.sign(dx) : 0
-        const faceY = Math.abs(dy) >= Math.abs(dx) ? Math.sign(dy) : 0
+        const faceX = c.face === 'east' ? 1 : c.face === 'west' ? -1 : 0
+        const faceY = c.face === 'south' ? 1 : c.face === 'north' ? -1 : 0
         return <Chair key={i} at={c} faceX={faceX} faceY={faceY} />
       })}
     </group>
