@@ -4,10 +4,11 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
-  WALL_THICK, DINING,
+  WALL_THICK, DINING, COUCH,
 } from './cabinData.js'
 import Kitchen from './Kitchen'
 import DiningTable from './DiningTable'
+import Couch from './Couch'
 
 const SCALE = 95
 // Walls are drawn OUTWARD from the interior line: a centered stroke of
@@ -345,6 +346,20 @@ export default function FloorPlan() {
 
         {/* Kitchen run */}
         <Kitchen px={px} py={py} scale={SCALE} />
+
+        {/* Couch */}
+        <Couch px={px} py={py} scale={SCALE} />
+        {/* Couch dimensions: 2.10 wide × 0.84 deep */}
+        {(() => {
+          const { cx, cy, w, d } = COUCH
+          const blue = '#566273'
+          return (
+            <g>
+              <HDim x1m={cx - w / 2} x2m={cx + w / 2} ym={cy + d / 2} label="2.10 m" above={false} gap={24} color={blue} />
+              <VDim xm={cx + w / 2} y1m={cy - d / 2} y2m={cy + d / 2} label="0.84 m" side="right" gap={30} color={blue} />
+            </g>
+          )
+        })()}
 
         {/* Dining table */}
         <DiningTable px={px} py={py} scale={SCALE} />

@@ -160,5 +160,16 @@ export const DINING = {
   chairGap: 0.06,       // gap between table edge and chair
 }
 
+// ── Couch ─────────────────────────────────────────────────────────
+// 210 × 84 cm (0.85m tall) in the living strip, facing the south glass
+// gable. Long axis E–W; backrest on the north side.
+export const COUCH = {
+  cx: 1.65, cy: 4.72,   // center (plan coords)
+  w: 2.10,              // width (along x)
+  d: 0.84,              // depth (along y)
+  h: 0.85,              // height (3D)
+  facing: 'south',      // seat opens toward +y (the entrance)
+}
+
 // ── Total floor area (m²) ─────────────────────────────────────────
 export const FLOOR_AREA = W_TOP * H_LEFT + STEP_W * H_RIGHT
