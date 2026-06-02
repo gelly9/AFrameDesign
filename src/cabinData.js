@@ -157,7 +157,7 @@ export const KITCHEN_RUN = KITCHEN.units.reduce((s, u) => s + u.w, 0)  // 3.20m
 // 80 × 140 cm rectangle, long axis N-S (clears stud S1 to the east).
 // Two chairs on each long (E/W) side.
 export const DINING = {
-  cx: 4.60, cy: H_LEFT - 2.40,   // center; cy aligned with S1 (between the E chairs)
+  cx: 5.00, cy: H_LEFT - 2.40,   // center; nudged toward the kitchen
   w: 0.80, d: 1.40,              // table top: 0.80 wide (x) × 1.40 long (y)
   seats: 4,
   chair: 0.45,          // chair footprint (square)
