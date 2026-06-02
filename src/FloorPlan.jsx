@@ -9,6 +9,7 @@ import {
 import Kitchen from './Kitchen'
 import DiningTable, { CHAIR_TUCK } from './DiningTable'
 import Couch from './Couch'
+import Tv from './Tv'
 
 const SCALE = 95
 // Walls are drawn OUTWARD from the interior line: a centered stroke of
@@ -347,8 +348,9 @@ export default function FloorPlan() {
         {/* Kitchen run */}
         <Kitchen px={px} py={py} scale={SCALE} />
 
-        {/* Couch */}
+        {/* Couch + TV */}
         <Couch px={px} py={py} scale={SCALE} />
+        <Tv px={px} py={py} scale={SCALE} />
         {/* Couch dimensions: 2.10 wide × 0.84 deep */}
         {(() => {
           const { cx, cy, w, d } = COUCH

@@ -164,11 +164,21 @@ export const DINING = {
 // 210 × 84 cm (0.85m tall) in the living strip, facing the south glass
 // gable. Long axis E–W; backrest on the north side.
 export const COUCH = {
-  cx: 1.65, cy: 4.72,   // center (plan coords)
+  cx: 1.65, cy: 6.42,   // center (plan coords) — moved south, faces the TV
   w: 2.10,              // width (along x)
   d: 0.84,              // depth (along y)
   h: 0.85,              // height (3D)
-  facing: 'south',      // seat opens toward +y (the entrance)
+  facing: 'north',      // seat opens toward -y (toward the TV wall)
+}
+
+// ── TV / media unit ───────────────────────────────────────────────
+// At the north end of the living strip (west of the stairs, clear of
+// the bathroom door). Console with a wall-style panel above, facing south.
+export const TV = {
+  cx: 1.50,            // center x
+  consoleY: 3.65,      // console center y (north end of living strip)
+  consoleW: 1.60, consoleD: 0.40, consoleH: 0.50,
+  panelW: 1.40, panelH: 0.80, panelSill: 0.65,  // TV panel above the console
 }
 
 // ── Tie beams ─────────────────────────────────────────────────────
