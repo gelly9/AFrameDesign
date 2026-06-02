@@ -164,7 +164,7 @@ export const DINING = {
 // 210 × 84 cm (0.85m tall). Sits between the studs (in y) facing WEST
 // toward the TV on the A-frame wall, so the view threads between S2/S3.
 export const COUCH = {
-  cx: 2.63, cy: 4.60,   // center — between the studs (y), backs onto the east
+  cx: 2.13, cy: 4.60,   // between the studs (view clear) + west for a bathroom corridor
   w: 2.10,              // seating width (along the wall it backs onto)
   d: 0.84,              // depth (toward the facing direction)
   h: 0.85,              // height (3D)
@@ -175,7 +175,7 @@ export const COUCH = {
 // On the west (A-frame) wall, between the studs, facing east toward the
 // couch. The view threads between studs S2 and S3.
 export const TV = {
-  cx: 0.70, cy: 4.60,  // center — pulled east so the slope clears the screen
+  cx: 0.70, cy: 4.60,  // center — aligned with the couch; east so the slope clears the screen
   consoleW: 1.60,      // length along the wall
   consoleD: 0.40,      // depth into the room
   consoleH: 0.50,
