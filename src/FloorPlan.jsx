@@ -4,7 +4,7 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
-  WALL_THICK, DINING, COUCH,
+  WALL_THICK, DINING, COUCH, BEAMS,
 } from './cabinData.js'
 import Kitchen from './Kitchen'
 import DiningTable, { CHAIR_TUCK } from './DiningTable'
@@ -408,6 +408,18 @@ export default function FloorPlan() {
         {/* Staircase dims: 1m gap to right wall + 1m width */}
         <HDim x1m={STAIR_X2} x2m={W_BOTTOM} ym={STAIR_Y1 + STAIR.width / 2} label="1.00 m" above color="#7a6a52" gap={26} />
         <VDim xm={STAIR_X1} y1m={STAIR_Y1} y2m={STAIR_Y2} label="1.00 m" side="left" gap={40} color="#7a6a52" />
+
+        {/* Tie beams above the studs (overhead → dashed) */}
+        {BEAMS.map(b => (
+          <g key={b.id}>
+            <rect x={px(b.x - b.size / 2)} y={py(b.y1)}
+                  width={b.size * SCALE} height={(b.y2 - b.y1) * SCALE}
+                  fill="none" stroke="#b58a52" strokeWidth={1} strokeDasharray="6,4" opacity={0.7} />
+            <text x={px(b.x) + 6} y={py(b.y1) + 60} fill="#b58a52" fontSize={9}
+                  fontWeight={700} transform={`rotate(90 ${px(b.x) + 6} ${py(b.y1) + 60})`}
+                  fontFamily="'Helvetica Neue',Arial,sans-serif">BEAM 20×20 (above)</text>
+          </g>
+        ))}
 
         {/* Studs */}
         {STUDS.map(s => <Stud key={s.id} stud={s} />)}

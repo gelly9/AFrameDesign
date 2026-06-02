@@ -9,6 +9,7 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
+  BEAMS,
 } from './cabinData.js'
 import Kitchen3D from './Kitchen3D'
 import { kitchenUnitRects } from './Kitchen.jsx'
@@ -421,6 +422,16 @@ function Studs() {
   })
 }
 
+// 20×20cm tie beams sitting on top of the studs, running front-to-back.
+function TieBeams() {
+  return BEAMS.map(b => (
+    <mesh key={b.id} position={[b.x, WALL_HEIGHT + b.size / 2, (b.y1 + b.y2) / 2]} castShadow receiveShadow>
+      <boxGeometry args={[b.size, b.size, b.y2 - b.y1]} />
+      <meshStandardMaterial color="#d8b787" roughness={0.75} />
+    </mesh>
+  ))
+}
+
 // ── Dimension annotations on the floor plane ──────────────────────
 // Each entry: edge endpoints in plan coords + an outward offset (plan)
 // and the length label. Drawn flat on the floor so it reads from above.
@@ -532,6 +543,7 @@ export default function Cabin3D() {
                   openings={OPENINGS.filter(o => o.wall === seg.id)} />
           ))}
           <Studs />
+          <TieBeams />
           <Staircase />
           <Kitchen3D />
           <DiningTable3D />
