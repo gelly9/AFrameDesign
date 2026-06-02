@@ -75,6 +75,30 @@ function insideRoom(x, y) {
   return inside
 }
 
+// Clearance kept around the figure when placing it (≈ its standing
+// footprint radius; 0.50m shoulder width fits the 0.525m cabinet↔stud gap).
+const PERSON_R = 0.25
+
+// Footprints (plan rects [x1, y1, x2, y2]) the figure may not overlap.
+function blockedRects() {
+  const rects = kitchenUnitRects().map(r => [r.x1m, r.y1m, r.x2m, r.y2m])
+  rects.push([STAIR_X1, STAIR_Y1, STAIR_X2, STAIR_Y2])
+  for (const s of STUDS)
+    rects.push([s.cx - STUD_SIZE / 2, s.cy - STUD_SIZE / 2, s.cx + STUD_SIZE / 2, s.cy + STUD_SIZE / 2])
+  return rects
+}
+
+// True if a circle of radius PERSON_R at (x, y) overlaps any item footprint.
+function hitsItem(x, y) {
+  for (const [x1, y1, x2, y2] of blockedRects()) {
+    const nx = Math.max(x1, Math.min(x, x2))   // nearest point on rect
+    const ny = Math.max(y1, Math.min(y, y2))
+    const dx = x - nx, dy = y - ny
+    if (dx * dx + dy * dy < PERSON_R * PERSON_R) return true
+  }
+  return false
+}
+
 // ── Extruded L-shape floor ────────────────────────────────────────
 function Floor({ onPick }) {
   const geom = useMemo(() => {
@@ -367,7 +391,7 @@ export default function Cabin3D() {
   const handlePick = (point) => {
     const planX = point.x + cx
     const planY = point.z + cy
-    if (insideRoom(planX, planY)) setPersonAt([planX, planY])
+    if (insideRoom(planX, planY) && !hitsItem(planX, planY)) setPersonAt([planX, planY])
   }
 
   return (
