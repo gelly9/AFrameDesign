@@ -179,8 +179,8 @@ export const COUCH = {
 // SE of the couch and a little forward, facing the TV. Placed so the
 // sightline passes south of the couch and clear of the studs.
 export const ARMCHAIR = {
-  cx: 1.10, cy: 5.30,   // back against stud S3; faces the TV (south)
-  w: 0.85, d: 0.85, h: 0.80,
+  cx: 1.10, cy: 5.24,   // back against stud S3; faces the TV (south)
+  w: 0.70, d: 0.72, h: 0.78,
   facing: 'south',      // back toward stud S3 (north), faces the TV
 }
 
