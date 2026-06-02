@@ -351,14 +351,22 @@ export default function FloorPlan() {
         {/* Couch + TV */}
         <Couch px={px} py={py} scale={SCALE} />
         <Tv px={px} py={py} scale={SCALE} />
-        {/* Couch dimensions (faces west: 2.10 long axis in y, 0.84 deep in x) */}
+        {/* Couch dimensions (orientation-aware: long axis follows `facing`) */}
         {(() => {
-          const { cx, cy, w, d } = COUCH
+          const { cx, cy, w, d, facing } = COUCH
           const blue = '#566273'
-          return (
+          const ew = facing === 'east' || facing === 'west'
+          const xH = ew ? d / 2 : w / 2
+          const yH = ew ? w / 2 : d / 2
+          return ew ? (
             <g>
-              <VDim xm={cx + d / 2} y1m={cy - w / 2} y2m={cy + w / 2} label="2.10 m" side="right" gap={30} color={blue} />
-              <HDim x1m={cx - d / 2} x2m={cx + d / 2} ym={cy + w / 2} label="0.84 m" above={false} gap={24} color={blue} />
+              <VDim xm={cx + xH} y1m={cy - yH} y2m={cy + yH} label="2.10 m" side="right" gap={30} color={blue} />
+              <HDim x1m={cx - xH} x2m={cx + xH} ym={cy + yH} label="0.84 m" above={false} gap={24} color={blue} />
+            </g>
+          ) : (
+            <g>
+              <HDim x1m={cx - xH} x2m={cx + xH} ym={cy + yH} label="2.10 m" above={false} gap={24} color={blue} />
+              <VDim xm={cx + xH} y1m={cy - yH} y2m={cy + yH} label="0.84 m" side="right" gap={30} color={blue} />
             </g>
           )
         })()}
