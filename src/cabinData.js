@@ -62,12 +62,15 @@ export const WALL_SEGMENTS = [
   return { ...seg, out: [nx, ny] }
 })
 
-// ── Entrance (bottom wall) ────────────────────────────────────────
+// ── Entrance (bottom wall) — A-frame glass facade, 4 panels + transom ─
 export const ENTRANCE = {
   wall: 'bottom',
   fromLeft: 1.30,
   width:    3.80,
   height:   2.10,
+  glass:    true,
+  cols:     4,
+  transom:  0.18,
 }
 
 // ── Terrace door (right wall) ─────────────────────────────────────

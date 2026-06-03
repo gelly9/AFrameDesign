@@ -299,12 +299,27 @@ export default function FloorPlan() {
         {/* Floor on top — covers the inner half of the walls */}
         <polygon points={roomPoints} fill="#f0ebe0" />
 
-        {/* Entrance jambs + label (wall band is outward, +y) */}
-        <line x1={ex1} y1={ey} x2={ex1} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-        <line x1={ex2} y1={ey} x2={ex2} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
-        <text x={(ex1 + ex2) / 2} y={ey + BAND + 14} textAnchor="middle"
-              fontSize={11} fill={C.opening} fontWeight={700} letterSpacing={1.5}
-              fontFamily="'Helvetica Neue',Arial,sans-serif">ENTRANCE</text>
+        {/* Entrance — glass facade in the wall band (4 panels), +y outward */}
+        {(() => {
+          const cols = ENTRANCE.cols || 1
+          const mullions = []
+          for (let i = 1; i < cols; i++) {
+            const mx = ex1 + ((ex2 - ex1) * i) / cols
+            mullions.push(<line key={i} x1={mx} y1={ey} x2={mx} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={1.4} />)
+          }
+          return (
+            <g>
+              <rect x={ex1} y={ey} width={ex2 - ex1} height={BAND}
+                    fill="rgba(147,210,235,0.4)" stroke={C.opening} strokeWidth={1.5} />
+              {mullions}
+              {/* jambs */}
+              <line x1={ex1} y1={ey} x2={ex1} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              <line x1={ex2} y1={ey} x2={ex2} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
+              <text x={(ex1 + ex2) / 2} y={ey + BAND + 14} textAnchor="middle"
+                    fontSize={11} fill={C.opening} fontWeight={700} letterSpacing={1.5} fontFamily={FONT}>ENTRANCE</text>
+            </g>
+          )
+        })()}
 
         {/* Window — top wall (band outward, -y) */}
         {(() => {

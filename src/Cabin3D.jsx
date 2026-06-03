@@ -35,7 +35,7 @@ const OPENINGS = [
     p: [ENTRANCE.fromLeft, H_LEFT],
     q: [ENTRANCE.fromLeft + ENTRANCE.width, H_LEFT],
     sill: 0, h: ENTRANCE.height,
-    glass: true, cols: 4, transom: 0.18,
+    glass: ENTRANCE.glass, cols: ENTRANCE.cols, transom: ENTRANCE.transom,
   },
   // Terrace door — right wall, 0.25m below the inner step wall (STEP_Y + fromTop)
   {
