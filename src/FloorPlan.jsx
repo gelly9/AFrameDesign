@@ -70,7 +70,13 @@ const C = {
   opening: '#3a7ca5',  // blue — door & window dims
   stud:    '#8b6f47',  // warm brown — stud dims
   helper:  '#b0b8c4',  // extension lines
+  beam:    '#b58a52',  // beams (overhead, dashed)
+  furn:    '#7c8559',  // furniture accent
+  ink:     '#1a1a2e',  // headings
+  sub:     '#6b7280',  // subtext
+  sheet:   '#ddd6c4',  // sheet border
 }
+const FONT = "'Helvetica Neue', Arial, sans-serif"
 
 const roomPoints = ROOM_POLYGON.map(([x, y]) => `${px(x)},${py(y)}`).join(' ')
 
@@ -169,32 +175,37 @@ function StudDims({ stud }) {
   )
 }
 
-function Compass({ x, y, r = 22 }) {
+function Compass({ x, y, r = 24 }) {
   return (
-    <g transform={`translate(${x},${y})`}>
-      <circle cx={0} cy={0} r={r} fill="#f9f8f6" stroke="#d1cfc9" strokeWidth={1} />
-      <polygon points={`0,${-r + 4} ${r / 4},0 0,${r / 4} ${-r / 4},0`} fill="#374151" />
-      <polygon points={`0,${r - 4} ${r / 4},0 0,${-r / 4} ${-r / 4},0`} fill="#c9c5bc" />
-      <text x={0} y={-r - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="#374151"
-            fontFamily="'Helvetica Neue',Arial,sans-serif">N</text>
+    <g transform={`translate(${x},${y})`} fontFamily={FONT}>
+      <circle cx={0} cy={0} r={r} fill="#fbfaf7" stroke="#d1cfc9" strokeWidth={1} />
+      <circle cx={0} cy={0} r={r - 4} fill="none" stroke="#e7e2d6" strokeWidth={0.8} />
+      {/* needle */}
+      <polygon points={`0,${-r + 5} ${r / 5},2 0,0 ${-r / 5},2`} fill={C.opening} />
+      <polygon points={`0,${r - 5} ${r / 5},-2 0,0 ${-r / 5},-2`} fill="#c9c5bc" />
+      <circle cx={0} cy={0} r={1.8} fill="#374151" />
+      <text x={0} y={-r - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill={C.ink}>N</text>
     </g>
   )
 }
 
 function Legend({ x, y }) {
-  const items = [
-    { color: C.wall,    label: 'Wall' },
-    { color: C.opening, label: 'Door / Window' },
-    { color: C.stud,    label: 'Stud' },
+  const rows = [
+    { kind: 'line',   color: '#1e1e1e',  w: 3, label: 'Wall' },
+    { kind: 'line',   color: C.opening,  w: 2, label: 'Door / window' },
+    { kind: 'swatch', color: C.stud,           label: 'Stud (15×15)' },
+    { kind: 'dash',   color: C.beam,     w: 1.4, label: 'Beam (above)' },
+    { kind: 'swatch', color: C.furn,           label: 'Furniture' },
   ]
   return (
-    <g transform={`translate(${x},${y})`}
-       fontFamily="'Helvetica Neue',Arial,sans-serif">
-      <text x={0} y={-6} fontSize={10} fontWeight={700} fill="#6b7280" letterSpacing={1}>LEGEND</text>
-      {items.map((it, i) => (
-        <g key={i} transform={`translate(0,${i * 18 + 8})`}>
-          <line x1={0} y1={6} x2={26} y2={6} stroke={it.color} strokeWidth={1.5} />
-          <text x={34} y={10} fontSize={11} fill="#374151">{it.label}</text>
+    <g transform={`translate(${x},${y})`} fontFamily={FONT}>
+      <text x={0} y={-8} fontSize={10} fontWeight={700} fill={C.sub} letterSpacing={1.5}>LEGEND</text>
+      {rows.map((r, i) => (
+        <g key={i} transform={`translate(0,${i * 19 + 6})`}>
+          {r.kind === 'line' && <line x1={0} y1={6} x2={24} y2={6} stroke={r.color} strokeWidth={r.w} strokeLinecap="round" />}
+          {r.kind === 'dash' && <line x1={0} y1={6} x2={24} y2={6} stroke={r.color} strokeWidth={r.w} strokeDasharray="5,3" />}
+          {r.kind === 'swatch' && <rect x={5} y={1} width={13} height={11} rx={2} fill={r.color} />}
+          <text x={32} y={10} fontSize={11} fill="#374151">{r.label}</text>
         </g>
       ))}
     </g>
@@ -255,16 +266,20 @@ export default function FloorPlan() {
           </filter>
         </defs>
 
+        {/* Sheet border */}
+        <rect x={16} y={16} width={svgW - 32} height={svgH - 32} rx={8}
+              fill="none" stroke={C.sheet} strokeWidth={1.5} />
+
         {/* Title block */}
-        <text x={40} y={56} fontSize={22} fontWeight={700} fill="#1a1a2e"
-              fontFamily="'Helvetica Neue',Arial,sans-serif">
+        <rect x={40} y={36} width={5} height={30} rx={2.5} fill={C.opening} />
+        <text x={56} y={58} fontSize={23} fontWeight={800} fill={C.ink}
+              fontFamily={FONT} letterSpacing={-0.3}>
           A-Frame Cabin — Ground Floor
         </text>
-        <text x={40} y={80} fontSize={13} fill="#6b7280"
-              fontFamily="'Helvetica Neue',Arial,sans-serif">
+        <text x={56} y={80} fontSize={12.5} fill={C.sub} fontFamily={FONT} letterSpacing={0.4}>
           Kitchen &amp; Living Room  ·  Scale 1:100  ·  Area ≈ {area} m²
         </text>
-        <line x1={40} y1={100} x2={svgW - 40} y2={100} stroke="#e5e0d8" strokeWidth={1} />
+        <line x1={40} y1={98} x2={svgW - 40} y2={98} stroke="#e5e0d8" strokeWidth={1} />
 
         {/* Walls — thick stroke centered on the interior line. The floor
             is painted on top afterwards, leaving only the OUTER half, so
@@ -281,9 +296,8 @@ export default function FloorPlan() {
           <line x1={px(W_TOP)} y1={py(BDOOR_Y1)} x2={px(W_TOP)} y2={py(BDOOR_Y2)} />
         </g>
 
-        {/* Floor + grid on top — covers the inner half of the walls */}
+        {/* Floor on top — covers the inner half of the walls */}
         <polygon points={roomPoints} fill="#f0ebe0" />
-        <Grid />
 
         {/* Entrance jambs + label (wall band is outward, +y) */}
         <line x1={ex1} y1={ey} x2={ex1} y2={ey + BAND} stroke="#1e1e1e" strokeWidth={3} strokeLinecap="round" />
@@ -418,16 +432,10 @@ export default function FloorPlan() {
         <HDim x1m={STAIR_X2} x2m={W_BOTTOM} ym={STAIR_Y1 + STAIR.width / 2} label="1.00 m" above color="#7a6a52" gap={26} />
         <VDim xm={STAIR_X1} y1m={STAIR_Y1} y2m={STAIR_Y2} label="1.00 m" side="left" gap={40} color="#7a6a52" />
 
-        {/* Tie beams above the studs (overhead → dashed) */}
+        {/* Tie beams above the studs (overhead → subtle dashed centerline) */}
         {BEAMS.map(b => (
-          <g key={b.id}>
-            <rect x={px(b.x - b.width / 2)} y={py(b.y1)}
-                  width={b.width * SCALE} height={(b.y2 - b.y1) * SCALE}
-                  fill="none" stroke="#b58a52" strokeWidth={1} strokeDasharray="6,4" opacity={0.7} />
-            <text x={px(b.x) + 6} y={py(b.y1) + 60} fill="#b58a52" fontSize={9}
-                  fontWeight={700} transform={`rotate(90 ${px(b.x) + 6} ${py(b.y1) + 60})`}
-                  fontFamily="'Helvetica Neue',Arial,sans-serif">BEAM 20×15 (above)</text>
-          </g>
+          <line key={b.id} x1={px(b.x)} y1={py(b.y1)} x2={px(b.x)} y2={py(b.y2)}
+                stroke="#b58a52" strokeWidth={1} strokeDasharray="7,5" opacity={0.45} />
         ))}
 
         {/* Studs */}
@@ -461,17 +469,10 @@ export default function FloorPlan() {
         <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP} y2m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT}  label="1.20 m" side="right" gap={62} color={C.opening} />
         <VDim xm={W_BOTTOM} y1m={STEP_Y + WIN_FROM_TOP + WIN_HEIGHT} y2m={H_LEFT}                  label="1.30 m" side="right" gap={62} color={C.opening} />
 
-        {/* Compass */}
-        <Compass x={svgW - 60} y={svgH - 70} />
-
-        {/* Legend */}
-        <Legend x={40} y={svgH - 90} />
-
         {/* Footer */}
-        <line x1={40} y1={svgH - 30} x2={svgW - 40} y2={svgH - 30} stroke="#e5e0d8" strokeWidth={1} />
-        <text x={40} y={svgH - 12} fontSize={10} fill="#9ca3af"
-              fontFamily="'Helvetica Neue',Arial,sans-serif">
-          All dimensions in meters  ·  Studs are 15×15 cm
+        <line x1={40} y1={svgH - 34} x2={svgW - 40} y2={svgH - 34} stroke="#e5e0d8" strokeWidth={1} />
+        <text x={40} y={svgH - 16} fontSize={10} fill="#9ca3af" fontFamily={FONT} letterSpacing={0.4}>
+          All dimensions in meters  ·  Studs 15×15 cm  ·  Walls 0.20 m  ·  A-Frame Cabin Design
         </text>
       </svg>
     </div>
