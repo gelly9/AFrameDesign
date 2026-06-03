@@ -97,13 +97,13 @@ export const RIGHT_WINDOW = {
   sillHeight: 0.90,
 }
 
-// ── Window on top wall (1.10m from right, 0.70m wide) ─────────────
+// ── Window on top wall (1.10m from right, 0.70m wide, 1.60m tall) ──
 export const TOP_WINDOW = {
   wall:      'top',
   fromRight: 1.10,
   width:     0.70,
-  height:    0.80,
-  sillHeight: 1.40,
+  height:    1.60,
+  sillHeight: 0.70,   // top sits 20cm below the 2.50m wall top
 }
 
 // ── Wood studs (15×15 cm posts, 2.43m tall) ───────────────────────

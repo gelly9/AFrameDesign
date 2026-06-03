@@ -444,7 +444,7 @@ export default function FloorPlan() {
 
         {/* ── Opening dimensions (blue) ── */}
         {/* Top wall window */}
-        <HDim x1m={WIN2_X1} x2m={WIN2_X2}   ym={0} label="0.70 m" above gap={86} color={C.opening} />
+        <HDim x1m={WIN2_X1} x2m={WIN2_X2}   ym={0} label={`${WIN2_WIDTH.toFixed(2)} m`} above gap={86} color={C.opening} />
         <HDim x1m={WIN2_X2} x2m={W_TOP}     ym={0} label="1.10 m" above gap={86} color={C.opening} />
         {/* Entrance segments */}
         <HDim x1m={0} x2m={ENT_LEFT}                  ym={H_LEFT} label="1.30 m" above={false} gap={62} color={C.opening} />
