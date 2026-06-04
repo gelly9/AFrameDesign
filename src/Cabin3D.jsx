@@ -1,6 +1,6 @@
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Grid, Environment, Line, Text } from '@react-three/drei'
-import { useMemo, useState } from 'react'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { OrbitControls, PointerLockControls, Grid, Environment, Line, Text } from '@react-three/drei'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import {
   W_TOP, H_LEFT, W_BOTTOM, H_RIGHT, STEP_Y,
@@ -83,6 +83,15 @@ function insideRoom(x, y) {
 // Clearance kept around the figure when placing it (≈ its standing
 // footprint radius; 0.50m shoulder width fits the 0.525m cabinet↔stud gap).
 const PERSON_R = 0.25
+
+// Inside the room AND at least BODY_R clear of every wall (so the
+// walk-through camera can't clip through walls).
+const BODY_R = 0.30
+function insideRoomClear(x, y) {
+  return insideRoom(x, y) &&
+    insideRoom(x + BODY_R, y) && insideRoom(x - BODY_R, y) &&
+    insideRoom(x, y + BODY_R) && insideRoom(x, y - BODY_R)
+}
 
 // Footprints (plan rects [x1, y1, x2, y2]) the figure may not overlap.
 function blockedRects() {
@@ -666,9 +675,118 @@ function KitchenStudGap() {
   )
 }
 
+// ── Orbit (dollhouse) camera: damping + zoom/pan guardrails ──────────
+function OrbitCam({ cx, cy }) {
+  const { camera } = useThree()
+  const ref = useRef()
+  useEffect(() => {
+    camera.position.set(9, 9, 11)        // reset to the default framing on (re)enter
+    camera.updateProjectionMatrix()
+  }, [camera])
+  const clamp = () => {
+    const c = ref.current
+    if (!c) return
+    // keep the orbit target within the house footprint so it can't drift off
+    c.target.x = Math.max(-cx, Math.min(cx, c.target.x))
+    c.target.z = Math.max(-cy, Math.min(cy, c.target.z))
+    c.target.y = Math.max(0, Math.min(WALL_HEIGHT, c.target.y))
+  }
+  return (
+    <OrbitControls ref={ref} makeDefault target={[0, 1, 0]} onChange={clamp}
+      enableDamping dampingFactor={0.08}
+      minDistance={2.5} maxDistance={22}
+      maxPolarAngle={Math.PI / 2 - 0.05} />
+  )
+}
+
+// True if (x,y) is on the staircase footprint.
+function onStair(x, y) {
+  return x >= STAIR_X1 && x <= STAIR_X2 && y >= STAIR_Y1 && y <= STAIR_Y2
+}
+
+// Floor height under the walk camera: 0 on the slab, rising along the stair
+// ramp (low at the right/terrace end → WALL_HEIGHT at the top-left).
+function groundHeight(x, y) {
+  if (!onStair(x, y)) return 0
+  const t = (STAIR_X2 - x) / STAIR.run        // 0 at the bottom → 1 at the top
+  return Math.max(0, Math.min(WALL_HEIGHT, t * WALL_HEIGHT))
+}
+
+// Walk collision: inside the walls and clear of furniture (a camera is a
+// point, so a smaller margin than the standing figure feels better). The
+// staircase is intentionally walkable, so its footprint is skipped.
+function walkClear(x, y) {
+  if (!insideRoomClear(x, y)) return false
+  for (const [x1, y1, x2, y2] of blockedRects()) {
+    if (x1 === STAIR_X1 && y1 === STAIR_Y1 && x2 === STAIR_X2 && y2 === STAIR_Y2) continue
+    const nx = Math.max(x1, Math.min(x, x2))
+    const ny = Math.max(y1, Math.min(y, y2))
+    const dx = x - nx, dy = y - ny
+    if (dx * dx + dy * dy < 0.18 * 0.18) return false
+  }
+  return true
+}
+
+const WORLD_UP = new THREE.Vector3(0, 1, 0)
+
+// ── First-person walk-through: W/S walk, A/D turn, + mouse-look, collision ─
+function WalkControls({ cx, cy }) {
+  const { camera } = useThree()
+  const keys = useRef({})
+  const EYE = 1.65
+  const SPEED = 2.4   // m/s
+  const TURN = 1.8    // rad/s
+  useEffect(() => {
+    // start in the open lane between couch and dining, looking into the room
+    camera.position.set(4.0 - cx, EYE, 7.3 - cy)
+    camera.lookAt(4.0 - cx, EYE, 4.8 - cy)
+    const down = e => { keys.current[e.code] = true }
+    const up   = e => { keys.current[e.code] = false }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+    }
+  }, [camera, cx, cy])
+
+  useFrame((_, delta) => {
+    const k = keys.current
+    let f = 0, t = 0
+    if (k.KeyW || k.ArrowUp)    f += 1
+    if (k.KeyS || k.ArrowDown)  f -= 1
+    if (k.KeyA || k.ArrowLeft)  t += 1   // turn left
+    if (k.KeyD || k.ArrowRight) t -= 1   // turn right
+    // steer: A/D rotate the heading (so W+A curves to the left)
+    if (t) camera.rotateOnWorldAxis(WORLD_UP, t * TURN * delta)
+    // walk: W/S along the facing direction, sliding along walls
+    if (f) {
+      const dir = new THREE.Vector3()
+      camera.getWorldDirection(dir)
+      dir.y = 0
+      if (dir.lengthSq() > 0) {
+        dir.normalize().multiplyScalar(f * SPEED * delta)
+        const step = (dx, dz) => {
+          const nx = camera.position.x + dx, nz = camera.position.z + dz
+          if (walkClear(nx + cx, nz + cy)) {
+            camera.position.x = nx; camera.position.z = nz; return true
+          }
+          return false
+        }
+        if (!step(dir.x, dir.z)) { step(dir.x, 0); step(0, dir.z) }
+      }
+    }
+    // ride the stair ramp (or stay at eye height on the flat slab)
+    camera.position.y = groundHeight(camera.position.x + cx, camera.position.z + cy) + EYE
+  })
+
+  return <PointerLockControls />
+}
+
 export default function Cabin3D() {
   const [showDims, setShowDims] = useState(true)
   const [showRoof, setShowRoof] = useState(false)
+  const [walk, setWalk] = useState(false)
   const [personAt, setPersonAt] = useState([1.6, 6.3])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
@@ -676,6 +794,7 @@ export default function Cabin3D() {
   // World intersection point → plan coords (undo the centering group offset).
   // group is at [-cx, 0, -cy]; inside it world = offset + (planX, 0, planY).
   const handlePick = (point) => {
+    if (walk) return                       // in walk mode a click locks the pointer
     const planX = point.x + cx
     const planY = point.z + cy
     if (insideRoom(planX, planY) && !hitsItem(planX, planY)) setPersonAt([planX, planY])
@@ -716,7 +835,7 @@ export default function Cabin3D() {
           <Couch3D data={ARMCHAIR} />
           <Tv3D />
           {showRoof && <Roof />}
-          <Person at={personAt} />
+          {!walk && <Person at={personAt} />}
           {showDims && <Dimensions />}
           {showDims && <StudWallDims />}
           {showDims && <KitchenStudGap />}
@@ -724,9 +843,22 @@ export default function Cabin3D() {
 
         <Grid args={[30, 30]} cellColor="#3a4050" sectionColor="#2a3040"
               position={[0, -0.11, 0]} fadeDistance={28} infiniteGrid />
-        <OrbitControls makeDefault target={[0, 1, 0]} />
+        {walk ? <WalkControls cx={cx} cy={cy} /> : <OrbitCam cx={cx} cy={cy} />}
       </Canvas>
       <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8 }}>
+        <button
+          onClick={() => setWalk(w => !w)}
+          style={{
+            padding: '7px 14px', borderRadius: 6, cursor: 'pointer',
+            border: '1px solid rgba(255,255,255,0.15)',
+            background: walk ? '#86c98a' : 'rgba(0,0,0,0.45)',
+            color: walk ? '#1a1f2a' : '#cbd5e1',
+            fontFamily: 'system-ui, sans-serif', fontSize: 12, fontWeight: 600,
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          {walk ? 'Exit walk' : 'Walk inside'}
+        </button>
         <button
           onClick={() => setShowRoof(r => !r)}
           style={{
@@ -760,7 +892,10 @@ export default function Cabin3D() {
         background: 'rgba(0,0,0,0.4)', padding: '6px 10px', borderRadius: 6,
         backdropFilter: 'blur(8px)',
       }}>
-        Drag to orbit · Scroll to zoom · Click the floor to move the figure  ·  Area ≈ {FLOOR_AREA.toFixed(1)} m²
+        {walk
+          ? 'W / S walk · A / D turn (W+A curves left) · click for mouse-look · Esc to release'
+          : 'Drag to orbit · Scroll to zoom · Click the floor to move the figure'}
+        {'  ·  Area ≈ '}{FLOOR_AREA.toFixed(1)} m²
       </div>
     </div>
   )
