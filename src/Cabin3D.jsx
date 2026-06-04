@@ -882,8 +882,8 @@ const WORLD_UP = new THREE.Vector3(0, 1, 0)
 
 // Light switch placement (plan coords: x, mount height, y) — a two-gang
 // plate on the front wall, between the main entrance and the fridge.
-const SWITCH_KITCHEN = [5.50, 1.20, 8.08]   // left gang → kitchen spots
-const SWITCH_DINING  = [5.62, 1.20, 8.08]   // right gang → dining pendant
+const SWITCH_DINING  = [5.50, 1.20, 8.08]   // left gang → dining pendant
+const SWITCH_KITCHEN = [5.62, 1.20, 8.08]   // right gang → kitchen spots
 
 // ── First-person walk-through: W/S walk, A/D turn, + mouse-look, collision ─
 function WalkControls({ cx, cy, switches }) {
