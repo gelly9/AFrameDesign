@@ -658,10 +658,10 @@ function KitchenSpots({ on, showFixtures }) {
 }
 
 // Interactive light switch on the right wall by the fridge — click to toggle.
-function LightSwitch({ on, onToggle }) {
+function LightSwitch({ pos, on, onToggle }) {
   const [hover, setHover] = useState(false)
   return (
-    <group position={SWITCH_PLAN}
+    <group position={pos}
       onClick={(e) => { e.stopPropagation(); onToggle() }}
       onPointerOver={(e) => { e.stopPropagation(); setHover(true); document.body.style.cursor = 'pointer' }}
       onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto' }}>
@@ -676,6 +676,46 @@ function LightSwitch({ on, onToggle }) {
         <meshStandardMaterial color={on ? '#fff7e0' : '#cdd1d6'}
           emissive={on ? '#ffcf5a' : '#000000'} emissiveIntensity={on ? 0.5 : 0} />
       </mesh>
+    </group>
+  )
+}
+
+// Modern single cone pendant over the dining table — matte-black shade on
+// a thin rod, warm bulb at the opening. Light follows the `on` flag.
+function Chandelier({ on }) {
+  const cx = DINING.cx, cy = DINING.cy
+  const canopyY = 2.53
+  const coneH = 0.24, coneR = 0.16
+  const coneBottom = 1.72
+  const coneY = coneBottom + coneH / 2
+  const apexY = coneY + coneH / 2
+  const rodTop = canopyY - 0.02, rodBottom = apexY
+  const rodMid = (rodTop + rodBottom) / 2, rodLen = rodTop - rodBottom
+  const BLACK = '#1f1f1f'
+  return (
+    <group>
+      {/* ceiling canopy */}
+      <mesh position={[cx, canopyY, cy]}>
+        <cylinderGeometry args={[0.05, 0.05, 0.02, 24]} />
+        <meshStandardMaterial color={BLACK} roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* rod */}
+      <mesh position={[cx, rodMid, cy]}>
+        <cylinderGeometry args={[0.006, 0.006, rodLen, 8]} />
+        <meshStandardMaterial color={BLACK} roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* cone shade (open at the wide bottom) */}
+      <mesh position={[cx, coneY, cy]} castShadow>
+        <coneGeometry args={[coneR, coneH, 32, 1, true]} />
+        <meshStandardMaterial color={BLACK} roughness={0.45} metalness={0.6} side={THREE.DoubleSide} />
+      </mesh>
+      {/* warm bulb at the opening */}
+      <mesh position={[cx, coneBottom + 0.05, cy]}>
+        <sphereGeometry args={[0.05, 20, 20]} />
+        <meshStandardMaterial color="#fff4dc"
+          emissive={on ? '#ffd98a' : '#3a3a3a'} emissiveIntensity={on ? 2 : 0} toneMapped={false} />
+      </mesh>
+      {on && <pointLight position={[cx, coneBottom, cy]} intensity={6} distance={5} decay={2} color="#ffe6b8" />}
     </group>
   )
 }
@@ -840,12 +880,13 @@ function walkClear(x, y) {
 
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
 
-// Light switch placement (plan coords: x, mount height, y) — on the front
-// wall, in the gap between the main entrance and the fridge.
-const SWITCH_PLAN = [5.55, 1.20, 8.08]
+// Light switch placement (plan coords: x, mount height, y) — a two-gang
+// plate on the front wall, between the main entrance and the fridge.
+const SWITCH_KITCHEN = [5.50, 1.20, 8.08]   // left gang → kitchen spots
+const SWITCH_DINING  = [5.62, 1.20, 8.08]   // right gang → dining pendant
 
 // ── First-person walk-through: W/S walk, A/D turn, + mouse-look, collision ─
-function WalkControls({ cx, cy, onUseSwitch }) {
+function WalkControls({ cx, cy, switches }) {
   const { camera } = useThree()
   const keys = useRef({})
   const EYE = 1.65
@@ -865,20 +906,25 @@ function WalkControls({ cx, cy, onUseSwitch }) {
     }
   }, [camera, cx, cy])
 
-  // While the pointer is locked, a click "uses" a switch you're aiming at.
+  // While the pointer is locked, a click "uses" the switch you're aiming at.
   useEffect(() => {
-    const sw = new THREE.Vector3(SWITCH_PLAN[0] - cx, SWITCH_PLAN[1], SWITCH_PLAN[2] - cy)
     const onClick = () => {
       if (!document.pointerLockElement) return        // first click only locks the pointer
       const dir = new THREE.Vector3()
       camera.getWorldDirection(dir)
-      const toSw = sw.clone().sub(camera.position)
-      const dist = toSw.length()
-      if (dist < 2.6 && dir.dot(toSw.normalize()) > 0.9) onUseSwitch()
+      let best = null, bestDot = 0.9
+      for (const s of switches) {
+        const toSw = new THREE.Vector3(s.pos[0] - cx, s.pos[1], s.pos[2] - cy).sub(camera.position)
+        if (toSw.length() < 2.6) {
+          const d = dir.dot(toSw.normalize())
+          if (d > bestDot) { bestDot = d; best = s }
+        }
+      }
+      if (best) best.toggle()
     }
     window.addEventListener('click', onClick)
     return () => window.removeEventListener('click', onClick)
-  }, [camera, cx, cy, onUseSwitch])
+  }, [camera, cx, cy, switches])
 
   useFrame((_, delta) => {
     const k = keys.current
@@ -918,7 +964,13 @@ export default function Cabin3D() {
   const [showRoof, setShowRoof] = useState(false)
   const [walk, setWalk] = useState(false)
   const [lightsOn, setLightsOn] = useState(true)
+  const [diningOn, setDiningOn] = useState(true)
   const toggleLights = useCallback(() => setLightsOn(v => !v), [])
+  const toggleDining = useCallback(() => setDiningOn(v => !v), [])
+  const switches = useMemo(() => [
+    { pos: SWITCH_KITCHEN, toggle: toggleLights },
+    { pos: SWITCH_DINING,  toggle: toggleDining },
+  ], [toggleLights, toggleDining])
   const [personAt, setPersonAt] = useState([1.6, 6.3])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
@@ -961,11 +1013,13 @@ export default function Cabin3D() {
           {showRoof && <DrywallCeiling />}
           {showRoof && <BathroomDrywall />}
           {showRoof && <KitchenSpots on={lightsOn} showFixtures />}
-          <LightSwitch on={lightsOn} onToggle={toggleLights} />
+          <LightSwitch pos={SWITCH_KITCHEN} on={lightsOn} onToggle={toggleLights} />
+          <LightSwitch pos={SWITCH_DINING} on={diningOn} onToggle={toggleDining} />
           {showRoof && <StairLinkDrywall />}
           <Staircase />
           <Kitchen3D />
           <DiningTable3D />
+          {showRoof && <Chandelier on={diningOn} />}
           <Couch3D />
           <Couch3D data={ARMCHAIR} />
           <Tv3D />
@@ -978,7 +1032,7 @@ export default function Cabin3D() {
 
         <Grid args={[30, 30]} cellColor="#3a4050" sectionColor="#2a3040"
               position={[0, -0.11, 0]} fadeDistance={28} infiniteGrid />
-        {walk ? <WalkControls cx={cx} cy={cy} onUseSwitch={toggleLights} /> : <OrbitCam cx={cx} cy={cy} />}
+        {walk ? <WalkControls cx={cx} cy={cy} switches={switches} /> : <OrbitCam cx={cx} cy={cy} />}
       </Canvas>
       <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8 }}>
         <button
