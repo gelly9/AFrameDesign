@@ -446,6 +446,17 @@ function TieBeams() {
   ))
 }
 
+// Joist y-positions: from the front wall back to the stair (the stairwell
+// is left open — no joists over it), spaced JOIST.spacing.
+function joistYs() {
+  const b2 = BEAMS.find(b => b.id === 'B2')
+  const y0 = b2.y2 - JOIST.width / 2          // first joist flush with the front wall
+  const stop = STAIR_Y2 + JOIST.width / 2     // last joist clears the stair's south edge
+  const ys = []
+  for (let y = y0; y >= stop - 1e-6; y -= JOIST.spacing) ys.push(y)
+  return ys
+}
+
 // Cross joists resting on top of beams B1 & B2, spanning x between them.
 function CrossJoists() {
   const b1 = BEAMS.find(b => b.id === 'B1')
@@ -454,18 +465,99 @@ function CrossJoists() {
   const len  = Math.abs(b2.x - b1.x) + JOIST.width          // span across, onto the beams
   const notch = 0.05                                        // notched 5cm into the beams
   const cY   = STUD_HEIGHT + b1.height - notch + JOIST.height / 2
-  const y0   = b2.y2 - JOIST.width / 2                       // first joist flush with the front wall
-  const joists = []
-  for (let i = 0; i < 6; i++) {                              // 6 joists, going back
-    const y = y0 - i * JOIST.spacing
-    joists.push(
-      <mesh key={i} position={[xMid, cY, y]} castShadow receiveShadow>
-        <boxGeometry args={[len, JOIST.height, JOIST.width]} />
-        <meshStandardMaterial color="#c2a878" roughness={0.8} />
+  return (
+    <group>
+      {joistYs().map((y, i) => (
+        <mesh key={i} position={[xMid, cY, y]} castShadow receiveShadow>
+          <boxGeometry args={[len, JOIST.height, JOIST.width]} />
+          <meshStandardMaterial color="#c2a878" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// Drywall ceiling between the joists, recessed so the bottom 10cm of
+// each joist stays exposed.
+function DrywallCeiling() {
+  const b1 = BEAMS.find(b => b.id === 'B1')
+  const b2 = BEAMS.find(b => b.id === 'B2')
+  const x1 = b1.x + b1.width / 2, x2 = b2.x - b2.width / 2   // between the beam inner faces
+  const xMid = (x1 + x2) / 2, len = x2 - x1
+  const notch = 0.05
+  const joistBottom = STUD_HEIGHT + b1.height - notch        // 2.58
+  const reveal = 0.10                                        // wood visible below the drywall
+  const thick = 0.025
+  const cy = joistBottom + reveal + thick / 2
+  const ys = joistYs()
+  const panels = []
+  for (let i = 0; i < ys.length - 1; i++) {
+    const a = ys[i] - JOIST.width / 2
+    const b = ys[i + 1] + JOIST.width / 2
+    panels.push(
+      <mesh key={i} position={[xMid, cy, (a + b) / 2]} receiveShadow>
+        <boxGeometry args={[len, thick, a - b]} />
+        <meshStandardMaterial color="#e9e7e1" roughness={0.95} />
       </mesh>
     )
   }
-  return <group>{joists}</group>
+  return <group>{panels}</group>
+}
+
+// Bathroom joist y-positions (upper area, shifted 10cm back).
+function bathroomJoistYs() {
+  const ys = []
+  for (let y = STEP_Y - JOIST.width / 2 - 0.10; y >= JOIST.width / 2 - 1e-6; y -= JOIST.spacing) ys.push(y)
+  return ys
+}
+
+// Joists over the bathroom (upper area): span from beam B1 to the
+// bathroom wall (inner vertical wall at x = W_TOP), one edge on the wall.
+function BathroomJoists() {
+  const b1 = BEAMS.find(b => b.id === 'B1')
+  const xMid = (b1.x + W_TOP) / 2
+  const len  = (W_TOP - b1.x) + JOIST.width           // onto B1 + sit on the wall
+  const notch = 0.05
+  const cY = STUD_HEIGHT + b1.height - notch + JOIST.height / 2
+  return (
+    <group>
+      {bathroomJoistYs().map((y, i) => (
+        <mesh key={i} position={[xMid, cY, y]} castShadow receiveShadow>
+          <boxGeometry args={[len, JOIST.height, JOIST.width]} />
+          <meshStandardMaterial color="#c2a878" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// Drywall between the bathroom joists (recessed 10cm like the main ceiling).
+function BathroomDrywall() {
+  const b1 = BEAMS.find(b => b.id === 'B1')
+  const x1 = b1.x + b1.width / 2, x2 = W_TOP          // B1 inner face → bathroom wall
+  const xMid = (x1 + x2) / 2, len = x2 - x1
+  const joistBottom = STUD_HEIGHT + b1.height - 0.05
+  const thick = 0.025
+  const cy = joistBottom + 0.10 + thick / 2
+  const ys = bathroomJoistYs()
+  const panels = ys.slice(0, -1).map((y, i) => {
+    const a = y - JOIST.width / 2
+    const b = ys[i + 1] + JOIST.width / 2
+    return { c: (a + b) / 2, w: a - b }
+  })
+  // end panel: from the last joist out to the back (top) wall
+  const last = ys[ys.length - 1] - JOIST.width / 2
+  panels.push({ c: last / 2, w: last })
+  return (
+    <group>
+      {panels.map((p, i) => (
+        <mesh key={i} position={[xMid, cy, p.c]} receiveShadow>
+          <boxGeometry args={[len, thick, p.w]} />
+          <meshStandardMaterial color="#e9e7e1" roughness={0.95} />
+        </mesh>
+      ))}
+    </group>
+  )
 }
 
 // ── Dimension annotations on the floor plane ──────────────────────
@@ -614,6 +706,9 @@ export default function Cabin3D() {
           <Studs />
           <TieBeams />
           {showRoof && <CrossJoists />}
+          {showRoof && <BathroomJoists />}
+          {showRoof && <DrywallCeiling />}
+          {showRoof && <BathroomDrywall />}
           <Staircase />
           <Kitchen3D />
           <DiningTable3D />
