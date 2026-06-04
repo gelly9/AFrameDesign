@@ -491,7 +491,7 @@ function CrossJoists() {
 function DrywallCeiling() {
   const b1 = BEAMS.find(b => b.id === 'B1')
   const b2 = BEAMS.find(b => b.id === 'B2')
-  const x1 = b1.x + b1.width / 2, x2 = b2.x - b2.width / 2   // between the beam inner faces
+  const x1 = b1.x - JOIST.width / 2, x2 = b2.x + JOIST.width / 2   // out to the joist ends
   const xMid = (x1 + x2) / 2, len = x2 - x1
   const notch = 0.05
   const joistBottom = STUD_HEIGHT + b1.height - notch        // 2.58
@@ -506,6 +506,16 @@ function DrywallCeiling() {
     panels.push(
       <mesh key={i} position={[xMid, cy, (a + b) / 2]} receiveShadow>
         <boxGeometry args={[len, thick, a - b]} />
+        <meshStandardMaterial color="#e9e7e1" roughness={0.95} />
+      </mesh>
+    )
+  }
+  // end panel: from the last joist out to the start of the stairwell
+  const lastEdge = ys[ys.length - 1] - JOIST.width / 2
+  if (lastEdge > STAIR_Y2) {
+    panels.push(
+      <mesh key="stairend" position={[xMid, cy, (lastEdge + STAIR_Y2) / 2]} receiveShadow>
+        <boxGeometry args={[len, thick, lastEdge - STAIR_Y2]} />
         <meshStandardMaterial color="#e9e7e1" roughness={0.95} />
       </mesh>
     )
@@ -543,7 +553,7 @@ function BathroomJoists() {
 // Drywall between the bathroom joists (recessed 10cm like the main ceiling).
 function BathroomDrywall() {
   const b1 = BEAMS.find(b => b.id === 'B1')
-  const x1 = b1.x + b1.width / 2, x2 = W_TOP          // B1 inner face → bathroom wall
+  const x1 = b1.x - JOIST.width / 2, x2 = W_TOP       // joist west end → bathroom wall
   const xMid = (x1 + x2) / 2, len = x2 - x1
   const joistBottom = STUD_HEIGHT + b1.height - 0.05
   const thick = 0.025
@@ -565,6 +575,34 @@ function BathroomDrywall() {
           <meshStandardMaterial color="#e9e7e1" roughness={0.95} />
         </mesh>
       ))}
+    </group>
+  )
+}
+
+// Flat drywall closing the gaps the joisted ceilings don't reach (between
+// the bathroom & main ceilings, and out to the right wall over the kitchen)
+// — leaves only the actual stair opening bare.
+function StairLinkDrywall() {
+  const b1 = BEAMS.find(b => b.id === 'B1')
+  const b2 = BEAMS.find(b => b.id === 'B2')
+  const xW = b1.x - JOIST.width / 2                    // joist west end (1.20)
+  const xE = b2.x + JOIST.width / 2                    // joist east end (5.40)
+  const thick = 0.025
+  const joistBottom = STUD_HEIGHT + b1.height - 0.05   // 2.58
+  const cyRecess = joistBottom + 0.10 + thick / 2      // flush with the recessed drywall
+  const cyFlush  = joistBottom + thick / 2             // flush with the joist undersides
+  const bathSouth = bathroomJoistYs()[0] - JOIST.width / 2   // south edge of bathroom ceiling
+  const panel = (x1, x2, y1, y2, cy, key) => (
+    <mesh key={key} position={[(x1 + x2) / 2, cy, (y1 + y2) / 2]} receiveShadow>
+      <boxGeometry args={[x2 - x1, thick, y2 - y1]} />
+      <meshStandardMaterial color="#e9e7e1" roughness={0.95} />
+    </mesh>
+  )
+  return (
+    <group>
+      {panel(xW, STAIR_X1, STAIR_Y1, STAIR_Y2, cyRecess, 'west')}        {/* alongside the stairwell */}
+      {panel(xW, W_TOP, bathSouth, STEP_Y, cyRecess, 'step')}             {/* bathroom → inner step */}
+      {panel(xE, W_BOTTOM, STAIR_Y2, H_LEFT, cyFlush, 'east')}           {/* B2 → right wall (kitchen) */}
     </group>
   )
 }
@@ -828,6 +866,7 @@ export default function Cabin3D() {
           {showRoof && <BathroomJoists />}
           {showRoof && <DrywallCeiling />}
           {showRoof && <BathroomDrywall />}
+          {showRoof && <StairLinkDrywall />}
           <Staircase />
           <Kitchen3D />
           <DiningTable3D />
