@@ -1,6 +1,6 @@
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { OrbitControls, PointerLockControls, Grid, Environment, Line, Text } from '@react-three/drei'
-import { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import * as THREE from 'three'
 import {
   W_TOP, H_LEFT, W_BOTTOM, H_RIGHT, STEP_Y,
@@ -16,7 +16,7 @@ import { kitchenUnitRects } from './Kitchen.jsx'
 import DiningTable3D from './DiningTable3D'
 import Couch3D from './Couch3D'
 import Tv3D from './Tv3D'
-import { DINING, COUCH, ARMCHAIR, TV } from './cabinData.js'
+import { DINING, COUCH, ARMCHAIR, TV, KITCHEN_RUN } from './cabinData.js'
 
 // ── Coordinate convention ─────────────────────────────────────────
 // Plan coords are (x, y) with y increasing downward (south).
@@ -607,6 +607,79 @@ function StairLinkDrywall() {
   )
 }
 
+// A single recessed downlight: warm spot aimed straight down, with a
+// dark housing ring and a glowing lens set into the soffit. The emitter
+// follows `on`; the visible fixture follows `showFixtures` (roof toggle).
+function CeilingSpot({ x, z, h, on, showFixtures }) {
+  const target = useMemo(() => {
+    const o = new THREE.Object3D()
+    o.position.set(x, 0, z)
+    return o
+  }, [x, z])
+  return (
+    <group>
+      {on && (
+        <>
+          <primitive object={target} />
+          <spotLight position={[x, h, z]} target={target}
+            angle={0.6} penumbra={0.6} intensity={18} distance={6} decay={2}
+            color="#ffe6c0" />
+        </>
+      )}
+      {showFixtures && (
+        <>
+          <mesh position={[x, h + 0.01, z]}>
+            <cylinderGeometry args={[0.065, 0.065, 0.03, 20]} />
+            <meshStandardMaterial color="#1c1c1c" roughness={0.6} metalness={0.3} />
+          </mesh>
+          <mesh position={[x, h - 0.008, z]}>
+            <cylinderGeometry args={[0.05, 0.05, 0.006, 20]} />
+            <meshStandardMaterial color="#fff3e0" emissive="#ffdca0"
+              emissiveIntensity={on ? 3 : 0} toneMapped={false} />
+          </mesh>
+        </>
+      )}
+    </group>
+  )
+}
+
+// Four downlights recessed into the kitchen soffit, evenly along the run.
+function KitchenSpots({ on, showFixtures }) {
+  // flush with the soffit (gipszkarton) underside, not hanging below it
+  const joistBottom = STUD_HEIGHT + BEAMS.find(b => b.id === 'B1').height - 0.05
+  const h = joistBottom + 0.008
+  const x = 5.95                                   // over the counter, 30cm toward the joists
+  const ys = [0, 1, 2, 3].map(i => H_LEFT - (i + 0.5) * (KITCHEN_RUN / 4))
+  return (
+    <group>
+      {ys.map((z, i) => <CeilingSpot key={i} x={x} z={z} h={h} on={on} showFixtures={showFixtures} />)}
+    </group>
+  )
+}
+
+// Interactive light switch on the right wall by the fridge — click to toggle.
+function LightSwitch({ on, onToggle }) {
+  const [hover, setHover] = useState(false)
+  return (
+    <group position={SWITCH_PLAN}
+      onClick={(e) => { e.stopPropagation(); onToggle() }}
+      onPointerOver={(e) => { e.stopPropagation(); setHover(true); document.body.style.cursor = 'pointer' }}
+      onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto' }}>
+      {/* face plate (front faces -y, into the room) */}
+      <mesh castShadow>
+        <boxGeometry args={[0.085, 0.13, 0.02]} />
+        <meshStandardMaterial color={hover ? '#e8edf2' : '#f2f2f0'} roughness={0.5} />
+      </mesh>
+      {/* rocker — tilts and glows when on */}
+      <mesh position={[0, on ? 0.018 : -0.018, -0.013]} rotation={[on ? -0.18 : 0.18, 0, 0]}>
+        <boxGeometry args={[0.05, 0.06, 0.014]} />
+        <meshStandardMaterial color={on ? '#fff7e0' : '#cdd1d6'}
+          emissive={on ? '#ffcf5a' : '#000000'} emissiveIntensity={on ? 0.5 : 0} />
+      </mesh>
+    </group>
+  )
+}
+
 // ── Dimension annotations on the floor plane ──────────────────────
 // Each entry: edge endpoints in plan coords + an outward offset (plan)
 // and the length label. Drawn flat on the floor so it reads from above.
@@ -767,8 +840,12 @@ function walkClear(x, y) {
 
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
 
+// Light switch placement (plan coords: x, mount height, y) — on the front
+// wall, in the gap between the main entrance and the fridge.
+const SWITCH_PLAN = [5.55, 1.20, 8.08]
+
 // ── First-person walk-through: W/S walk, A/D turn, + mouse-look, collision ─
-function WalkControls({ cx, cy }) {
+function WalkControls({ cx, cy, onUseSwitch }) {
   const { camera } = useThree()
   const keys = useRef({})
   const EYE = 1.65
@@ -787,6 +864,21 @@ function WalkControls({ cx, cy }) {
       window.removeEventListener('keyup', up)
     }
   }, [camera, cx, cy])
+
+  // While the pointer is locked, a click "uses" a switch you're aiming at.
+  useEffect(() => {
+    const sw = new THREE.Vector3(SWITCH_PLAN[0] - cx, SWITCH_PLAN[1], SWITCH_PLAN[2] - cy)
+    const onClick = () => {
+      if (!document.pointerLockElement) return        // first click only locks the pointer
+      const dir = new THREE.Vector3()
+      camera.getWorldDirection(dir)
+      const toSw = sw.clone().sub(camera.position)
+      const dist = toSw.length()
+      if (dist < 2.6 && dir.dot(toSw.normalize()) > 0.9) onUseSwitch()
+    }
+    window.addEventListener('click', onClick)
+    return () => window.removeEventListener('click', onClick)
+  }, [camera, cx, cy, onUseSwitch])
 
   useFrame((_, delta) => {
     const k = keys.current
@@ -825,6 +917,8 @@ export default function Cabin3D() {
   const [showDims, setShowDims] = useState(true)
   const [showRoof, setShowRoof] = useState(false)
   const [walk, setWalk] = useState(false)
+  const [lightsOn, setLightsOn] = useState(true)
+  const toggleLights = useCallback(() => setLightsOn(v => !v), [])
   const [personAt, setPersonAt] = useState([1.6, 6.3])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
@@ -866,6 +960,8 @@ export default function Cabin3D() {
           {showRoof && <BathroomJoists />}
           {showRoof && <DrywallCeiling />}
           {showRoof && <BathroomDrywall />}
+          {showRoof && <KitchenSpots on={lightsOn} showFixtures />}
+          <LightSwitch on={lightsOn} onToggle={toggleLights} />
           {showRoof && <StairLinkDrywall />}
           <Staircase />
           <Kitchen3D />
@@ -882,7 +978,7 @@ export default function Cabin3D() {
 
         <Grid args={[30, 30]} cellColor="#3a4050" sectionColor="#2a3040"
               position={[0, -0.11, 0]} fadeDistance={28} infiniteGrid />
-        {walk ? <WalkControls cx={cx} cy={cy} /> : <OrbitCam cx={cx} cy={cy} />}
+        {walk ? <WalkControls cx={cx} cy={cy} onUseSwitch={toggleLights} /> : <OrbitCam cx={cx} cy={cy} />}
       </Canvas>
       <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8 }}>
         <button
@@ -925,6 +1021,14 @@ export default function Cabin3D() {
           {showDims ? 'Hide dimensions' : 'Show dimensions'}
         </button>
       </div>
+      {walk && (
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', width: 7, height: 7,
+          marginLeft: -3.5, marginTop: -3.5, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.75)', boxShadow: '0 0 0 1px rgba(0,0,0,0.4)',
+          pointerEvents: 'none',
+        }} />
+      )}
       <div style={{
         position: 'absolute', bottom: 24, left: 24,
         color: '#cbd5e1', fontFamily: 'system-ui, sans-serif', fontSize: 12,
@@ -932,7 +1036,7 @@ export default function Cabin3D() {
         backdropFilter: 'blur(8px)',
       }}>
         {walk
-          ? 'W / S walk · A / D turn (W+A curves left) · click for mouse-look · Esc to release'
+          ? 'W / S walk · A / D turn · click for mouse-look · aim at a switch & click to use · Esc to release'
           : 'Drag to orbit · Scroll to zoom · Click the floor to move the figure'}
         {'  ·  Area ≈ '}{FLOOR_AREA.toFixed(1)} m²
       </div>

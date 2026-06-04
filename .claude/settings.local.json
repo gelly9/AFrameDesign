@@ -17,7 +17,8 @@
       "Bash(git remote *)",
       "Bash(git push *)",
       "Bash(gh run *)",
-      "Bash(gh workflow *)"
+      "Bash(gh workflow *)",
+      "Bash(node -e \"const p=require\\('/Users/gelli/A-Frame-Design/package.json'\\); console.log\\('three', p.dependencies.three, '| r3f', p.dependencies['@react-three/fiber'], '| drei', p.dependencies['@react-three/drei']\\)\")"
     ]
   }
 }
