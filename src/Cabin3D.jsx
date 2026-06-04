@@ -885,31 +885,67 @@ const WORLD_UP = new THREE.Vector3(0, 1, 0)
 const SWITCH_DINING  = [5.50, 1.20, 8.08]   // left gang → dining pendant
 const SWITCH_KITCHEN = [5.62, 1.20, 8.08]   // right gang → kitchen spots
 
-// ── First-person walk-through: W/S walk, A/D turn, + mouse-look, collision ─
-function WalkControls({ cx, cy, switches }) {
-  const { camera } = useThree()
-  const keys = useRef({})
+// ── First-person walk-through ─────────────────────────────────────
+// Desktop: mouse-look (pointer lock) + W/S walk, A/D turn.
+// Touch: drag to look, on-screen buttons drive the same input ref.
+function WalkControls({ cx, cy, switches, inputRef, isTouch }) {
+  const { camera, gl } = useThree()
   const EYE = 1.65
   const SPEED = 2.4   // m/s
   const TURN = 1.8    // rad/s
+  const yaw = useRef(0), pitch = useRef(0)
+  const applyLook = () =>
+    camera.quaternion.setFromEuler(new THREE.Euler(pitch.current, yaw.current, 0, 'YXZ'))
+
   useEffect(() => {
+    for (const k in inputRef.current) inputRef.current[k] = false   // clear stale held keys
     // start in the open lane between couch and dining, looking into the room
     camera.position.set(4.0 - cx, EYE, 7.3 - cy)
-    camera.lookAt(4.0 - cx, EYE, 4.8 - cy)
-    const down = e => { keys.current[e.code] = true }
-    const up   = e => { keys.current[e.code] = false }
+    if (isTouch) { yaw.current = 0; pitch.current = 0; applyLook() }
+    else camera.lookAt(4.0 - cx, EYE, 4.8 - cy)
+    const down = e => { inputRef.current[e.code] = true }
+    const up   = e => { inputRef.current[e.code] = false }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
     }
-  }, [camera, cx, cy])
+  }, [camera, cx, cy, isTouch, inputRef])
 
-  // While the pointer is locked, a click "uses" the switch you're aiming at.
+  // Touch: one-finger drag rotates the view (yaw + clamped pitch).
+  useEffect(() => {
+    if (!isTouch) return
+    const el = gl.domElement
+    let lx = 0, ly = 0, active = false
+    const start = e => { const t = e.touches[0]; lx = t.clientX; ly = t.clientY; active = true }
+    const move = e => {
+      if (!active) return
+      const t = e.touches[0]
+      yaw.current   -= (t.clientX - lx) * 0.005
+      pitch.current  = Math.max(-1.2, Math.min(1.2, pitch.current - (t.clientY - ly) * 0.005))
+      lx = t.clientX; ly = t.clientY
+      applyLook()
+      e.preventDefault()
+    }
+    const end = () => { active = false }
+    el.addEventListener('touchstart', start, { passive: true })
+    el.addEventListener('touchmove', move, { passive: false })
+    el.addEventListener('touchend', end)
+    el.addEventListener('touchcancel', end)
+    return () => {
+      el.removeEventListener('touchstart', start)
+      el.removeEventListener('touchmove', move)
+      el.removeEventListener('touchend', end)
+      el.removeEventListener('touchcancel', end)
+    }
+  }, [isTouch, camera, gl])
+
+  // Desktop: while the pointer is locked, a click "uses" the aimed switch.
+  // (On touch, tapping the switch mesh triggers its own onClick instead.)
   useEffect(() => {
     const onClick = () => {
-      if (!document.pointerLockElement) return        // first click only locks the pointer
+      if (!document.pointerLockElement) return
       const dir = new THREE.Vector3()
       camera.getWorldDirection(dir)
       let best = null, bestDot = 0.9
@@ -927,15 +963,16 @@ function WalkControls({ cx, cy, switches }) {
   }, [camera, cx, cy, switches])
 
   useFrame((_, delta) => {
-    const k = keys.current
+    const k = inputRef.current
     let f = 0, t = 0
     if (k.KeyW || k.ArrowUp)    f += 1
     if (k.KeyS || k.ArrowDown)  f -= 1
     if (k.KeyA || k.ArrowLeft)  t += 1   // turn left
     if (k.KeyD || k.ArrowRight) t -= 1   // turn right
-    // steer: A/D rotate the heading (so W+A curves to the left)
-    if (t) camera.rotateOnWorldAxis(WORLD_UP, t * TURN * delta)
-    // walk: W/S along the facing direction, sliding along walls
+    if (t) {
+      if (isTouch) { yaw.current += t * TURN * delta; applyLook() }
+      else camera.rotateOnWorldAxis(WORLD_UP, t * TURN * delta)
+    }
     if (f) {
       const dir = new THREE.Vector3()
       camera.getWorldDirection(dir)
@@ -956,7 +993,25 @@ function WalkControls({ cx, cy, switches }) {
     camera.position.y = groundHeight(camera.position.x + cx, camera.position.z + cy) + EYE
   })
 
-  return <PointerLockControls />
+  return isTouch ? null : <PointerLockControls />
+}
+
+// Press-and-hold button that drives a key flag in the shared walk input.
+function HoldButton({ code, inputRef, label }) {
+  const set = v => e => { e.preventDefault(); inputRef.current[code] = v }
+  return (
+    <button
+      onPointerDown={set(true)} onPointerUp={set(false)}
+      onPointerLeave={set(false)} onPointerCancel={set(false)}
+      onContextMenu={e => e.preventDefault()}
+      style={{
+        width: 56, height: 56, borderRadius: 12, fontSize: 22, fontWeight: 700,
+        color: '#1a1f2a', background: 'rgba(255,255,255,0.85)',
+        border: '1px solid rgba(0,0,0,0.15)', touchAction: 'none', userSelect: 'none',
+        WebkitUserSelect: 'none', backdropFilter: 'blur(6px)',
+      }}
+    >{label}</button>
+  )
 }
 
 export default function Cabin3D() {
@@ -972,6 +1027,9 @@ export default function Cabin3D() {
     { pos: SWITCH_DINING,  toggle: toggleDining },
   ], [toggleLights, toggleDining])
   const [personAt, setPersonAt] = useState([1.6, 6.3])
+  const walkInput = useRef({})
+  const isTouch = useMemo(() => typeof window !== 'undefined' &&
+    (window.matchMedia?.('(pointer: coarse)').matches || 'ontouchstart' in window), [])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
   const wallOpacity = walk ? 1 : 0.4    // solid from inside, see-through in the overview
@@ -1037,7 +1095,9 @@ export default function Cabin3D() {
 
         <Grid args={[30, 30]} cellColor="#3a4050" sectionColor="#2a3040"
               position={[0, -0.11, 0]} fadeDistance={28} infiniteGrid />
-        {walk ? <WalkControls cx={cx} cy={cy} switches={switches} /> : <OrbitCam cx={cx} cy={cy} />}
+        {walk
+          ? <WalkControls cx={cx} cy={cy} switches={switches} inputRef={walkInput} isTouch={isTouch} />
+          : <OrbitCam cx={cx} cy={cy} />}
       </Canvas>
       <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8 }}>
         <button
@@ -1080,13 +1140,27 @@ export default function Cabin3D() {
           {showDims ? 'Hide dimensions' : 'Show dimensions'}
         </button>
       </div>
-      {walk && (
+      {walk && !isTouch && (
         <div style={{
           position: 'absolute', top: '50%', left: '50%', width: 7, height: 7,
           marginLeft: -3.5, marginTop: -3.5, borderRadius: '50%',
           background: 'rgba(255,255,255,0.75)', boxShadow: '0 0 0 1px rgba(0,0,0,0.4)',
           pointerEvents: 'none',
         }} />
+      )}
+      {walk && isTouch && (
+        <>
+          {/* turn buttons (bottom-left) */}
+          <div style={{ position: 'absolute', bottom: 22, left: 18, display: 'flex', gap: 10 }}>
+            <HoldButton code="KeyA" inputRef={walkInput} label="‹" />
+            <HoldButton code="KeyD" inputRef={walkInput} label="›" />
+          </div>
+          {/* walk buttons (bottom-right) */}
+          <div style={{ position: 'absolute', bottom: 22, right: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <HoldButton code="KeyW" inputRef={walkInput} label="▲" />
+            <HoldButton code="KeyS" inputRef={walkInput} label="▼" />
+          </div>
+        </>
       )}
       <div style={{
         position: 'absolute', bottom: 24, left: 24,
@@ -1095,7 +1169,9 @@ export default function Cabin3D() {
         backdropFilter: 'blur(8px)',
       }}>
         {walk
-          ? 'W / S walk · A / D turn · click for mouse-look · aim at a switch & click to use · Esc to release'
+          ? (isTouch
+              ? 'Drag to look around · ▲▼ to walk · ‹› to turn · tap a switch to use it'
+              : 'W / S walk · A / D turn · click for mouse-look · aim at a switch & click to use · Esc to release')
           : 'Drag to orbit · Scroll to zoom · Click the floor to move the figure'}
         {'  ·  Area ≈ '}{FLOOR_AREA.toFixed(1)} m²
       </div>
