@@ -225,7 +225,7 @@ function Opening({ op, w, cx, cy }) {
 }
 
 // ── One vertical wall, with openings projected onto it ────────────
-function Wall({ from, to, height, openings, out = [0, 0] }) {
+function Wall({ from, to, height, openings, out = [0, 0], opacity = 0.4 }) {
   const A = from, B = to
   const dx = B[0] - A[0]
   const dy = B[1] - A[1]
@@ -250,8 +250,8 @@ function Wall({ from, to, height, openings, out = [0, 0] }) {
     <group position={[mwx, height / 2, mwz]} rotation={[0, angle, 0]}>
       <mesh castShadow receiveShadow>
         <boxGeometry args={[L + THICK, height, THICK]} />
-        <meshStandardMaterial color="#efe7d4" roughness={0.85} side={THREE.DoubleSide}
-                              transparent opacity={0.4} depthWrite={false} />
+        <meshStandardMaterial color="#ffffff" roughness={0.9} side={THREE.DoubleSide}
+                              transparent={opacity < 1} opacity={opacity} depthWrite={opacity >= 1} />
       </mesh>
       {openings.map((op, i) => {
         const cx = (op.p[0] + op.q[0]) / 2
@@ -308,7 +308,7 @@ function roofHeightAt(x) {
 // A wall running along x at plan-y = wy, with its TOP clipped to the
 // roof slope so it never pokes above the roof. Built as an extruded
 // profile (floor → min(wall height, roof height)).
-function ClippedXWall({ x1, x2, wy, outward }) {
+function ClippedXWall({ x1, x2, wy, outward, opacity = 0.4 }) {
   const xa = Math.min(x1, x2) - WALL_THICK / 2
   const xb = Math.max(x1, x2) + WALL_THICK / 2
   const topAt = x => Math.min(WALL_HEIGHT, roofHeightAt(x))
@@ -326,8 +326,8 @@ function ClippedXWall({ x1, x2, wy, outward }) {
   const z = outward < 0 ? wy - WALL_THICK : wy   // sit outside the interior line
   return (
     <mesh geometry={geo} position={[0, 0, z]} castShadow receiveShadow>
-      <meshStandardMaterial color="#efe7d4" roughness={0.85} side={THREE.DoubleSide}
-                            transparent opacity={0.4} depthWrite={false} />
+      <meshStandardMaterial color="#ffffff" roughness={0.9} side={THREE.DoubleSide}
+                            transparent={opacity < 1} opacity={opacity} depthWrite={opacity >= 1} />
     </mesh>
   )
 }
@@ -974,6 +974,11 @@ export default function Cabin3D() {
   const [personAt, setPersonAt] = useState([1.6, 6.3])
   const cx = W_BOTTOM / 2
   const cy = H_LEFT / 2
+  const wallOpacity = walk ? 1 : 0.4    // solid from inside, see-through in the overview
+
+  // Walking inside always shows the roof; showing the roof turns the lights on.
+  useEffect(() => { if (walk) setShowRoof(true) }, [walk])
+  useEffect(() => { if (showRoof) { setLightsOn(true); setDiningOn(true) } }, [showRoof])
 
   // World intersection point → plan coords (undo the centering group offset).
   // group is at [-cx, 0, -cy]; inside it world = offset + (planX, 0, planY).
@@ -996,14 +1001,14 @@ export default function Cabin3D() {
         <group position={[-cx, 0, -cy]}>
           <Floor onPick={handlePick} />
           {/* top & bottom walls: tops clipped to the roof slope */}
-          <ClippedXWall x1={0} x2={W_TOP}    wy={0}      outward={-1} />
-          <ClippedXWall x1={0} x2={W_BOTTOM} wy={H_LEFT} outward={1} />
+          <ClippedXWall x1={0} x2={W_TOP}    wy={0}      outward={-1} opacity={wallOpacity} />
+          <ClippedXWall x1={0} x2={W_BOTTOM} wy={H_LEFT} outward={1} opacity={wallOpacity} />
           <AbsOpening op={OPENINGS.find(o => o.wall === 'top')} />
           <AbsOpening op={OPENINGS.find(o => o.wall === 'bottom')} />
           {/* remaining vertical walls (not under the slope) stay full height */}
           {WALL_SEGMENTS.filter(s => s.id !== 'top' && s.id !== 'bottom').map(seg => (
             <Wall key={seg.id} from={seg.from} to={seg.to} height={WALL_HEIGHT}
-                  out={seg.out}
+                  out={seg.out} opacity={wallOpacity}
                   openings={OPENINGS.filter(o => o.wall === seg.id)} />
           ))}
           <Studs />
