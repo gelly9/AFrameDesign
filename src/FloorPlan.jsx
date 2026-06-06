@@ -378,9 +378,8 @@ export default function FloorPlan() {
         {/* Kitchen run */}
         <Kitchen px={px} py={py} scale={SCALE} />
 
-        {/* Couch + armchair + TV */}
+        {/* Couch + TV */}
         <Couch px={px} py={py} scale={SCALE} />
-        <Couch px={px} py={py} scale={SCALE} data={ARMCHAIR} />
         <Tv px={px} py={py} scale={SCALE} />
         {/* Couch dimensions (axis-aligned facings only) */}
         {COUCH.facing.length <= 5 && (() => {

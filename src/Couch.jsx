@@ -1,7 +1,7 @@
 import { COUCH } from './cabinData.js'
 
-const FABRIC    = '#8d9bb0'
-const FABRIC_DK = '#6f7d92'
+const FABRIC    = '#9a9b9f'
+const FABRIC_DK = '#74757a'
 const ARM_W  = 0.16   // armrest width (m)
 const BACK_T = 0.18   // backrest depth (m)
 

@@ -4,8 +4,8 @@ const SEAT_H = 0.42
 const ARM_H  = 0.58
 const ARM_W  = 0.16
 const BACK_T = 0.18
-const FABRIC    = '#8d9bb0'
-const FABRIC_DK = '#7d8ba2'
+const FABRIC    = '#9a9b9f'
+const FABRIC_DK = '#7e7f84'
 
 // facing → rotation about Y of the canonical (faces-south, +z) couch
 const ROT_Y = {

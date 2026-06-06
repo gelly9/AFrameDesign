@@ -115,7 +115,6 @@ function blockedRects() {
     return [cx - xH, cy - yH, cx + xH, cy + yH]
   }
   rects.push(foot(COUCH.cx, COUCH.cy, COUCH.w, COUCH.d, COUCH.facing))
-  rects.push(foot(ARMCHAIR.cx, ARMCHAIR.cy, ARMCHAIR.w, ARMCHAIR.d, ARMCHAIR.facing))
   rects.push(foot(TV.cx, TV.cy, TV.consoleW, TV.consoleD, TV.facing))
   return rects
 }
@@ -1120,7 +1119,6 @@ export default function Cabin3D() {
           <Bar3D />
           {showRoof && <Chandelier on={diningOn} />}
           <Couch3D />
-          <Couch3D data={ARMCHAIR} />
           <Tv3D />
           {showRoof && <Roof />}
           {!walk && <Person at={personAt} />}
