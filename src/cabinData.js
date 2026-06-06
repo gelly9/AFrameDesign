@@ -168,6 +168,22 @@ export const DINING = {
   chairGap: 0.06,       // gap between table edge and chair
 }
 
+// ── Breakfast bar (alternative to the dining table) ───────────────
+// Tall, narrow rustic bar console: thick wood top on two slatted-panel
+// pedestals, with round bar stools on one long side. Occupies the same
+// spot as DINING; the dining table stays defined but unused.
+export const BAR = {
+  cx: 4.70, cy: H_LEFT - 2.40,   // near stud S1, pulled back 10cm from it
+  w: 0.60,             // depth (x)
+  d: 1.60,             // length (y)
+  h: 1.05,             // bar height
+  top: 0.05,           // top slab thickness
+  stools: 2,
+  stoolSide: 'west',   // stools on the living-room side
+  stoolR: 0.18,
+  stoolH: 0.72,
+}
+
 // ── Couch ─────────────────────────────────────────────────────────
 // 210 × 84 cm (0.85m tall). Sits between the studs (in y) facing WEST
 // toward the TV on the A-frame wall, so the view threads between S2/S3.

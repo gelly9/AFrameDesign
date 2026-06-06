@@ -4,10 +4,11 @@ import {
   ENTRANCE, TERRACE_DOOR, BATHROOM_DOOR, RIGHT_WINDOW, TOP_WINDOW,
   STUD_SIZE, STUDS as RAW_STUDS, FLOOR_AREA,
   STAIR, STAIR_X1, STAIR_X2, STAIR_Y1, STAIR_Y2,
-  WALL_THICK, DINING, COUCH, ARMCHAIR, BEAMS,
+  WALL_THICK, DINING, BAR, COUCH, ARMCHAIR, BEAMS,
 } from './cabinData.js'
 import Kitchen from './Kitchen'
-import DiningTable, { CHAIR_TUCK } from './DiningTable'
+import DiningTable, { CHAIR_TUCK } from './DiningTable'   // kept for later; bar is used instead
+import Bar from './Bar'
 import Couch from './Couch'
 import Tv from './Tv'
 
@@ -401,19 +402,18 @@ export default function FloorPlan() {
           )
         })()}
 
-        {/* Dining table */}
-        <DiningTable px={px} py={py} scale={SCALE} />
-        {/* Dining dimensions: table w×d, chair 0.45 */}
+        {/* Bar (replaces the dining table) */}
+        <Bar px={px} py={py} scale={SCALE} />
+        {/* Bar dimensions: depth (x) × length (y) */}
         {(() => {
-          const { cx, cy, w, d, chair } = DINING
-          const southChairBot = cy + d / 2 + CHAIR_TUCK  // tucked chairs protrude only slightly
+          const { cx, cy, w, d } = BAR
           const wood = '#8c6741'
           return (
             <g>
-              {/* table width (x) */}
-              <HDim x1m={cx - w / 2} x2m={cx + w / 2} ym={southChairBot} label={`${w.toFixed(2)} m`} above={false} gap={24} color={wood} />
-              {/* table length (y) */}
-              <VDim xm={cx - w / 2} y1m={cy - d / 2} y2m={cy + d / 2} label={`${d.toFixed(2)} m`} side="left" gap={60} color={wood} />
+              {/* bar depth (x) */}
+              <HDim x1m={cx - w / 2} x2m={cx + w / 2} ym={cy + d / 2} label={`${w.toFixed(2)} m`} above={false} gap={24} color={wood} />
+              {/* bar length (y) */}
+              <VDim xm={cx + w / 2} y1m={cy - d / 2} y2m={cy + d / 2} label={`${d.toFixed(2)} m`} side="right" gap={40} color={wood} />
             </g>
           )
         })()}

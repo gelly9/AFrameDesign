@@ -13,10 +13,11 @@ import {
 } from './cabinData.js'
 import Kitchen3D from './Kitchen3D'
 import { kitchenUnitRects } from './Kitchen.jsx'
-import DiningTable3D from './DiningTable3D'
+import DiningTable3D from './DiningTable3D'   // kept for later; bar is used instead
+import Bar3D from './Bar3D'
 import Couch3D from './Couch3D'
 import Tv3D from './Tv3D'
-import { DINING, COUCH, ARMCHAIR, TV, KITCHEN_RUN } from './cabinData.js'
+import { DINING, BAR, COUCH, ARMCHAIR, TV, KITCHEN_RUN } from './cabinData.js'
 
 // ── Coordinate convention ─────────────────────────────────────────
 // Plan coords are (x, y) with y increasing downward (south).
@@ -99,8 +100,8 @@ function blockedRects() {
   rects.push([STAIR_X1, STAIR_Y1, STAIR_X2, STAIR_Y2])
   for (const s of STUDS)
     rects.push([s.cx - STUD_SIZE / 2, s.cy - STUD_SIZE / 2, s.cx + STUD_SIZE / 2, s.cy + STUD_SIZE / 2])
-  rects.push([DINING.cx - DINING.w / 2, DINING.cy - DINING.d / 2,
-              DINING.cx + DINING.w / 2, DINING.cy + DINING.d / 2])
+  rects.push([BAR.cx - BAR.w / 2, BAR.cy - BAR.d / 2,
+              BAR.cx + BAR.w / 2, BAR.cy + BAR.d / 2])
   // Orientation-aware footprints. Diagonal facings use a conservative
   // square bounding box; axis-aligned swap extents for east/west.
   const foot = (cx, cy, along, depth, facing) => {
@@ -433,15 +434,45 @@ function Person({ at }) {
   )
 }
 
+// A rustic hand-hewn timber stud: axe-chamfered corners and uneven
+// incised notch grooves cut around a weathered, knotty post.
+function CarvedStud({ x, z }) {
+  const H = STUD_HEIGHT, S = STUD_SIZE, half = S / 2
+  const WOOD = '#5a4632', EDGE = '#6e553c', GROOVE = '#332619'
+  // shaved (chamfered) facets running up the four corners
+  const corners = [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([sx, sz], i) => (
+    <mesh key={`c${i}`} position={[x + sx * (half - 0.006), H / 2, z + sz * (half - 0.006)]}
+          rotation={[0, Math.PI / 4, 0]} castShadow>
+      <boxGeometry args={[0.05, H, 0.02]} />
+      <meshStandardMaterial color={EDGE} roughness={0.95} />
+    </mesh>
+  ))
+  // hand-cut notch grooves at uneven heights and depths
+  const grooves = [
+    [0.21, 0.03], [0.57, 0.02], [0.96, 0.038], [1.32, 0.022],
+    [1.71, 0.032], [2.06, 0.02], [2.33, 0.034],
+  ].map(([gy, t], i) => (
+    <mesh key={`g${i}`} position={[x, gy, z]} castShadow>
+      <boxGeometry args={[S + 0.005, t, S + 0.005]} />
+      <meshStandardMaterial color={GROOVE} roughness={1} />
+    </mesh>
+  ))
+  return (
+    <group>
+      <mesh position={[x, H / 2, z]} castShadow receiveShadow>
+        <boxGeometry args={[S, H, S]} />
+        <meshStandardMaterial color={WOOD} roughness={0.95} />
+      </mesh>
+      {corners}
+      {grooves}
+    </group>
+  )
+}
+
 function Studs() {
   return STUDS.map(s => {
     const [wx, wz] = toWorld([s.cx, s.cy])
-    return (
-      <mesh key={s.id} position={[wx, STUD_HEIGHT / 2, wz]} castShadow receiveShadow>
-        <boxGeometry args={[STUD_SIZE, STUD_HEIGHT, STUD_SIZE]} />
-        <meshStandardMaterial color="#6b5744" roughness={0.85} />
-      </mesh>
-    )
+    return <CarvedStud key={s.id} x={wx} z={wz} />
   })
 }
 
@@ -683,7 +714,7 @@ function LightSwitch({ pos, on, onToggle }) {
 // Modern single cone pendant over the dining table — matte-black shade on
 // a thin rod, warm bulb at the opening. Light follows the `on` flag.
 function Chandelier({ on }) {
-  const cx = DINING.cx, cy = DINING.cy
+  const cx = BAR.cx, cy = BAR.cy
   const canopyY = 2.53
   const coneH = 0.24, coneR = 0.16
   const coneBottom = 1.72
@@ -1081,7 +1112,8 @@ export default function Cabin3D() {
           {showRoof && <StairLinkDrywall />}
           <Staircase />
           <Kitchen3D />
-          <DiningTable3D />
+          {/* <DiningTable3D /> — swapped for the bar; keep for later */}
+          <Bar3D />
           {showRoof && <Chandelier on={diningOn} />}
           <Couch3D />
           <Couch3D data={ARMCHAIR} />
