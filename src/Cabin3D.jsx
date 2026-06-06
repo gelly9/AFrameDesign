@@ -434,37 +434,41 @@ function Person({ at }) {
   )
 }
 
-// A rustic hand-hewn timber stud: axe-chamfered corners and uneven
-// incised notch grooves cut around a weathered, knotty post.
+// A stud with carved detail: vertical fluting on all four faces plus a
+// few decorative collar bands.
 function CarvedStud({ x, z }) {
   const H = STUD_HEIGHT, S = STUD_SIZE, half = S / 2
-  const WOOD = '#5a4632', EDGE = '#6e553c', GROOVE = '#332619'
-  // shaved (chamfered) facets running up the four corners
-  const corners = [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([sx, sz], i) => (
-    <mesh key={`c${i}`} position={[x + sx * (half - 0.006), H / 2, z + sz * (half - 0.006)]}
-          rotation={[0, Math.PI / 4, 0]} castShadow>
-      <boxGeometry args={[0.05, H, 0.02]} />
-      <meshStandardMaterial color={EDGE} roughness={0.95} />
-    </mesh>
-  ))
-  // hand-cut notch grooves at uneven heights and depths
-  const grooves = [
-    [0.21, 0.03], [0.57, 0.02], [0.96, 0.038], [1.32, 0.022],
-    [1.71, 0.032], [2.06, 0.02], [2.33, 0.034],
-  ].map(([gy, t], i) => (
-    <mesh key={`g${i}`} position={[x, gy, z]} castShadow>
-      <boxGeometry args={[S + 0.005, t, S + 0.005]} />
-      <meshStandardMaterial color={GROOVE} roughness={1} />
+  const ps = [-0.045, 0, 0.045]      // three flutes per face
+  const ribH = H * 0.86
+  const ribs = []
+  for (const sgn of [1, -1]) {
+    for (const p of ps) {
+      ribs.push(
+        <mesh key={`x${sgn}_${p}`} position={[x + sgn * half, H / 2, z + p]} castShadow>
+          <boxGeometry args={[0.006, ribH, 0.012]} />
+          <meshStandardMaterial color="#7d6650" roughness={0.8} />
+        </mesh>,
+        <mesh key={`z${sgn}_${p}`} position={[x + p, H / 2, z + sgn * half]} castShadow>
+          <boxGeometry args={[0.012, ribH, 0.006]} />
+          <meshStandardMaterial color="#7d6650" roughness={0.8} />
+        </mesh>
+      )
+    }
+  }
+  const bands = [0.16, H / 2, H - 0.16].map((by, i) => (
+    <mesh key={`b${i}`} position={[x, by, z]} castShadow>
+      <boxGeometry args={[S + 0.016, 0.045, S + 0.016]} />
+      <meshStandardMaterial color="#4a3a2a" roughness={0.85} />
     </mesh>
   ))
   return (
     <group>
       <mesh position={[x, H / 2, z]} castShadow receiveShadow>
         <boxGeometry args={[S, H, S]} />
-        <meshStandardMaterial color={WOOD} roughness={0.95} />
+        <meshStandardMaterial color="#6b5744" roughness={0.85} />
       </mesh>
-      {corners}
-      {grooves}
+      {ribs}
+      {bands}
     </group>
   )
 }
