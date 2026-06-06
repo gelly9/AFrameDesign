@@ -76,10 +76,45 @@ function Unit({ r }) {
         <meshStandardMaterial color={TOP} roughness={0.55} />
       </mesh>
 
-      {/* ── Drawer fronts (cabinet, hob-with-drawers) ── */}
-      {(unit.type === 'cabinet' || unit.type === 'hob') && [0.30, 0.60].map((f, i) => (
+      {/* ── Drawer fronts (cabinet only) ── */}
+      {unit.type === 'cabinet' && [0.30, 0.60].map((f, i) => (
         <Front key={i} fx={fx} y={COUNTER_H * f} cz={cz} wz={wz} />
       ))}
+
+      {/* ── Built-in electric oven under the hob ── */}
+      {unit.type === 'hob' && (() => {
+        const ox = fx - 0.012
+        return (
+          <group>
+            {/* oven door panel */}
+            <mesh position={[ox, 0.42, cz]} castShadow>
+              <boxGeometry args={[0.02, 0.62, wz * 0.92]} />
+              <meshStandardMaterial color="#3a3b3d" roughness={0.4} metalness={0.5} />
+            </mesh>
+            {/* glass window */}
+            <mesh position={[ox - 0.006, 0.40, cz]}>
+              <boxGeometry args={[0.012, 0.30, wz * 0.62]} />
+              <meshStandardMaterial color="#15171a" roughness={0.2} metalness={0.3} />
+            </mesh>
+            {/* handle bar near the top of the door */}
+            <mesh position={[ox - 0.03, 0.70, cz]}>
+              <boxGeometry args={[0.03, 0.025, wz * 0.72]} />
+              <meshStandardMaterial color={METAL} metalness={0.7} roughness={0.25} />
+            </mesh>
+            {/* control panel + knobs just below the countertop */}
+            <mesh position={[ox, 0.82, cz]}>
+              <boxGeometry args={[0.02, 0.10, wz * 0.92]} />
+              <meshStandardMaterial color="#2b2c2e" roughness={0.4} metalness={0.4} />
+            </mesh>
+            {[-1, 0, 1].map(k => (
+              <mesh key={k} position={[ox - 0.02, 0.82, cz + k * wz * 0.22]} rotation={[0, 0, Math.PI / 2]}>
+                <cylinderGeometry args={[0.016, 0.016, 0.03, 12]} />
+                <meshStandardMaterial color={METAL} metalness={0.6} roughness={0.3} />
+              </mesh>
+            ))}
+          </group>
+        )
+      })()}
       {(unit.type === 'cabinet') && [0.18, 0.48, 0.78].map((f, i) => (
         <Front key={`h${i}`} fx={fx} y={COUNTER_H * f} cz={cz} wz={wz * 0.45} h={0.025} color={METAL} />
       ))}
