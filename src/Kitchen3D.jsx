@@ -1,4 +1,5 @@
 import { kitchenUnitRects } from './Kitchen.jsx'
+import { W_BOTTOM, KITCHEN_UPPER } from './cabinData.js'
 
 // Heights / palette (match the 2D olive scheme)
 const COUNTER_H = 0.90
@@ -122,8 +123,43 @@ function Unit({ r }) {
   )
 }
 
+// Upper (wall) cabinet on the right wall, north of the window.
+function UpperCabinet() {
+  const u = KITCHEN_UPPER
+  const x2 = W_BOTTOM, x1 = W_BOTTOM - u.depth
+  const cx = (x1 + x2) / 2, wx = u.depth
+  const cz = (u.y1 + u.y2) / 2, wz = u.y2 - u.y1
+  const cy = u.bottom + u.height / 2
+  const fx = x1   // room-facing front
+  return (
+    <group>
+      <mesh position={[cx, cy, cz]} castShadow receiveShadow>
+        <boxGeometry args={[wx, u.height, wz]} />
+        <meshStandardMaterial color={OLIVE} roughness={0.85} />
+      </mesh>
+      {/* center door seam */}
+      <mesh position={[fx - 0.006, cy, cz]}>
+        <boxGeometry args={[0.012, u.height * 0.9, 0.008]} />
+        <meshStandardMaterial color={OLIVE_DK} roughness={0.6} />
+      </mesh>
+      {/* two door handles near the bottom edge */}
+      {[-1, 1].map(s => (
+        <mesh key={s} position={[fx - 0.02, u.bottom + 0.08, cz + s * wz * 0.22]}>
+          <boxGeometry args={[0.03, 0.10, 0.02]} />
+          <meshStandardMaterial color={METAL} metalness={0.6} roughness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
 // Standalone — render inside the centered model group of Cabin3D,
 // which already maps plan (x, y) → world (x, y) and centers the model.
 export default function Kitchen3D() {
-  return kitchenUnitRects().map(r => <Unit key={r.unit.id} r={r} />)
+  return (
+    <group>
+      {kitchenUnitRects().map(r => <Unit key={r.unit.id} r={r} />)}
+      <UpperCabinet />
+    </group>
+  )
 }

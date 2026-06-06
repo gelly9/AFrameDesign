@@ -1,4 +1,4 @@
-import { W_BOTTOM, H_LEFT, KITCHEN, KITCHEN_RUN } from './cabinData.js'
+import { W_BOTTOM, H_LEFT, KITCHEN, KITCHEN_RUN, KITCHEN_UPPER } from './cabinData.js'
 
 // Olive palette (matches the reference elevation)
 const OLIVE    = '#7c8559'
@@ -145,6 +145,20 @@ export default function Kitchen({ px, py, scale }) {
                 fontSize={9} fontWeight={700} fill={OLIVE_DK} fontFamily={FONT}>
             KITCHEN {KITCHEN_RUN.toFixed(2)} m
           </text>
+        )
+      })()}
+      {/* upper (wall) cabinet — drawn dashed (above counter height) */}
+      {(() => {
+        const u = KITCHEN_UPPER
+        const x = px(W_BOTTOM - u.depth), y = py(u.y1)
+        const w = u.depth * scale, h = (u.y2 - u.y1) * scale
+        return (
+          <g>
+            <rect x={x} y={y} width={w} height={h} fill="none"
+                  stroke={OLIVE_DK} strokeWidth={1.2} strokeDasharray="4 3" />
+            <text x={x + w / 2} y={y + h / 2 + 3} textAnchor="middle"
+                  fontSize={6.5} fontWeight={700} fill={OLIVE_DK} fontFamily={FONT}>UPPER</text>
+          </g>
         )
       })()}
     </g>

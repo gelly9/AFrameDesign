@@ -156,6 +156,18 @@ export const KITCHEN = {
 }
 export const KITCHEN_RUN = KITCHEN.units.reduce((s, u) => s + u.w, 0)  // 3.20m
 
+// ── Kitchen upper (wall) cabinet ──────────────────────────────────
+// 60cm wall cabinet on the right wall, just north of the window
+// (which spans y 5.60–6.80), mounted above the counter.
+export const KITCHEN_UPPER = {
+  wall:   'right',
+  width:  0.60,         // along the wall (y)
+  depth:  0.32,         // into the room (x)
+  height: 0.70,
+  bottom: 1.45,         // underside height above the floor
+  y1: 4.80, y2: 5.40,   // plan-y span (north of the window, 0.20m clear of it)
+}
+
 // ── Dining table ──────────────────────────────────────────────────
 // 80 × 140 cm rectangle, long axis N-S (clears stud S1 to the east).
 // Two chairs on each long (E/W) side.
