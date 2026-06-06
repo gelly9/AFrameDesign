@@ -154,7 +154,7 @@ const THICK = WALL_THICK   // 0.20m, built outward from the interior line
 
 // Shared structural timber color — studs, tie beams and all joists.
 // Change this one value to recolor the whole timber frame.
-const TIMBER = '#7d6956'
+const TIMBER = '#9e876a'
 
 // ── A single door/window, optionally glass with mullions + transom ──
 function Opening({ op, w, cx, cy }) {
@@ -449,11 +449,11 @@ function CarvedStud({ x, z }) {
       ribs.push(
         <mesh key={`x${sgn}_${p}`} position={[x + sgn * half, H / 2, z + p]} castShadow>
           <boxGeometry args={[0.006, ribH, 0.012]} />
-          <meshStandardMaterial color="#8f7862" roughness={0.8} />
+          <meshStandardMaterial color="#b09a7c" roughness={0.8} />
         </mesh>,
         <mesh key={`z${sgn}_${p}`} position={[x + p, H / 2, z + sgn * half]} castShadow>
           <boxGeometry args={[0.012, ribH, 0.006]} />
-          <meshStandardMaterial color="#8f7862" roughness={0.8} />
+          <meshStandardMaterial color="#b09a7c" roughness={0.8} />
         </mesh>
       )
     }
@@ -461,7 +461,7 @@ function CarvedStud({ x, z }) {
   const bands = [0.16, H / 2, H - 0.16].map((by, i) => (
     <mesh key={`b${i}`} position={[x, by, z]} castShadow>
       <boxGeometry args={[S + 0.016, 0.045, S + 0.016]} />
-      <meshStandardMaterial color="#5c4c3c" roughness={0.85} />
+      <meshStandardMaterial color="#71604c" roughness={0.85} />
     </mesh>
   ))
   return (
