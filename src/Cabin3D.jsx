@@ -152,6 +152,10 @@ function Floor({ onPick }) {
 
 const THICK = WALL_THICK   // 0.20m, built outward from the interior line
 
+// Shared structural timber color — studs, tie beams and all joists.
+// Change this one value to recolor the whole timber frame.
+const TIMBER = '#7d6956'
+
 // ── A single door/window, optionally glass with mullions + transom ──
 function Opening({ op, w, cx, cy }) {
   const h = op.h
@@ -445,11 +449,11 @@ function CarvedStud({ x, z }) {
       ribs.push(
         <mesh key={`x${sgn}_${p}`} position={[x + sgn * half, H / 2, z + p]} castShadow>
           <boxGeometry args={[0.006, ribH, 0.012]} />
-          <meshStandardMaterial color="#7d6650" roughness={0.8} />
+          <meshStandardMaterial color="#8f7862" roughness={0.8} />
         </mesh>,
         <mesh key={`z${sgn}_${p}`} position={[x + p, H / 2, z + sgn * half]} castShadow>
           <boxGeometry args={[0.012, ribH, 0.006]} />
-          <meshStandardMaterial color="#7d6650" roughness={0.8} />
+          <meshStandardMaterial color="#8f7862" roughness={0.8} />
         </mesh>
       )
     }
@@ -457,14 +461,14 @@ function CarvedStud({ x, z }) {
   const bands = [0.16, H / 2, H - 0.16].map((by, i) => (
     <mesh key={`b${i}`} position={[x, by, z]} castShadow>
       <boxGeometry args={[S + 0.016, 0.045, S + 0.016]} />
-      <meshStandardMaterial color="#4a3a2a" roughness={0.85} />
+      <meshStandardMaterial color="#5c4c3c" roughness={0.85} />
     </mesh>
   ))
   return (
     <group>
       <mesh position={[x, H / 2, z]} castShadow receiveShadow>
         <boxGeometry args={[S, H, S]} />
-        <meshStandardMaterial color="#6b5744" roughness={0.85} />
+        <meshStandardMaterial color={TIMBER} roughness={0.85} />
       </mesh>
       {ribs}
       {bands}
@@ -484,7 +488,7 @@ function TieBeams() {
   return BEAMS.map(b => (
     <mesh key={b.id} position={[b.x, STUD_HEIGHT + b.height / 2, (b.y1 + b.y2) / 2]} castShadow receiveShadow>
       <boxGeometry args={[b.width, b.height, b.y2 - b.y1]} />
-      <meshStandardMaterial color="#d8b787" roughness={0.75} />
+      <meshStandardMaterial color={TIMBER} roughness={0.75} />
     </mesh>
   ))
 }
@@ -513,7 +517,7 @@ function CrossJoists() {
       {joistYs().map((y, i) => (
         <mesh key={i} position={[xMid, cY, y]} castShadow receiveShadow>
           <boxGeometry args={[len, JOIST.height, JOIST.width]} />
-          <meshStandardMaterial color="#c2a878" roughness={0.8} />
+          <meshStandardMaterial color={TIMBER} roughness={0.8} />
         </mesh>
       ))}
     </group>
@@ -577,7 +581,7 @@ function BathroomJoists() {
       {bathroomJoistYs().map((y, i) => (
         <mesh key={i} position={[xMid, cY, y]} castShadow receiveShadow>
           <boxGeometry args={[len, JOIST.height, JOIST.width]} />
-          <meshStandardMaterial color="#c2a878" roughness={0.8} />
+          <meshStandardMaterial color={TIMBER} roughness={0.8} />
         </mesh>
       ))}
     </group>
