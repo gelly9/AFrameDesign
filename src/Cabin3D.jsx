@@ -1019,10 +1019,13 @@ function WalkControls({ cx, cy, switches, inputRef, isTouch }) {
         dir.normalize().multiplyScalar(f * SPEED * delta)
         const step = (dx, dz) => {
           const nx = camera.position.x + dx, nz = camera.position.z + dz
-          if (walkClear(nx + cx, nz + cy)) {
-            camera.position.x = nx; camera.position.z = nz; return true
-          }
-          return false
+          if (!walkClear(nx + cx, nz + cy)) return false
+          // only allow a small height change per step, so you can't hop onto
+          // an elevated tread from the side — you must walk up from the bottom.
+          const curG = groundHeight(camera.position.x + cx, camera.position.z + cy)
+          const newG = groundHeight(nx + cx, nz + cy)
+          if (Math.abs(newG - curG) > 0.30) return false
+          camera.position.x = nx; camera.position.z = nz; return true
         }
         if (!step(dir.x, dir.z)) { step(dir.x, 0); step(0, dir.z) }
       }
